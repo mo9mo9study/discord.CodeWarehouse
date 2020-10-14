@@ -16,13 +16,13 @@ client.on("voiceStateUpdate", (before, after) => {
 
     // TODO: 2020/10/03 yabuta env等で定義できたらしたい。
     // 「作業部屋用チャット」表示権限ID
-    const workRoomChatRoleId = "";
+    const workRoomChatRoleId = "763401369784156211";
     // 「ラウンジ用チャット」表示権限ID
-    const loungeChatRoleId = "";
+    const loungeChatRoleId = "763400537257148446";
     // 「作業部屋」ID
-    const workRoomVoiceChatId = "";
+    const workRoomVoiceChatId = "683864874539024397";
     // 「ラウンジ」ID
-    const loungeVoiceChatId = "";
+    const loungeVoiceChatId = "603582455756095492";
 
     console.log("before: ", before.channelID, "(after) ", after.channelID);
     // 自分のギルドかつ、入室、退出の場合のみ
@@ -42,6 +42,7 @@ client.on("voiceStateUpdate", (before, after) => {
             console.log(
                 `${member.user.username}(${userid})がボイスチャンネル から退室しました`
             );
+            console.log(after.channel)
         } else if (before.channelID !== after.channelID) {
             // 入室 or 部屋変更
             console.log(
@@ -52,7 +53,6 @@ client.on("voiceStateUpdate", (before, after) => {
             if (after.channelID === workRoomVoiceChatId) {
                 member.roles.add(workRoomChatRoleId);
             }
-
             // ラウンジに入室
             if (after.channelID === loungeVoiceChatId) {
                 member.roles.add(loungeChatRoleId);
