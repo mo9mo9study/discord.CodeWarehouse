@@ -6,11 +6,10 @@ $ npm install
 
 # Feature Description
 - activetimes_move.js
-```
-個人のtimes内でメッセージが送信された時、
-分報カテゴリーからACTIMEのカテゴリーにtimesが移動する
-AM2時に定期実行でACTIVEのカテゴリーから分報カテゴリーに戻す処理
-```
+> 個人のtimes内でメッセージが送信された時、
+> 分報カテゴリーからACTIMEのカテゴリーにtimesが移動する
+> AM2時に定期実行でACTIVEのカテゴリーから分報カテゴリーに戻す処理
+
 - autoCreateTimes.js
 ```
 自己紹介チャンネルで
