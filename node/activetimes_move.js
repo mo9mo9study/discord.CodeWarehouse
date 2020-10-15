@@ -119,7 +119,7 @@ client.on("message", (message) => {
   }
 });
 
-cron.schedule("0 0 2 * * *", () => {
+cron.schedule("0 0 17 * * *", () => {
   const date = new Date();
   console.log(
     `${date.toLocaleString("ja")}にreset処理の定期実行を開始しました`
