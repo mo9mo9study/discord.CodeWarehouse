@@ -2,3 +2,4 @@
 node_modules
 */venv/
 .python-version
+*/__pycache__/
