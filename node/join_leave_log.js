@@ -44,7 +44,8 @@ client.on("guildMemberAdd", (member) => {
 });
 
 client.on("guildMemberRemove", (member) => {
-  console.log("退室時");
+  console.log("離脱時");
+  console.log(`${member.user.username} (__id:${member.user.id}__) が離脱しました。`);
   let text = `${member.user.username} (__id:${member.user.id}__) が離脱しました。`;
   sendMessage(member, text);
 });
