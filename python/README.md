@@ -1,3 +1,13 @@
+# venv
+この環境ではvenvでディレクトリ内のモジュールを管理しています
+```
+#仮想環境の有効化
+$ source ~venv/bin/avtivate
+
+#仮想環境の無効化
+$ deactivate
+```
+
 # Pythonのパッケージインストール
 ※requirements.txtがある場合
 ```
