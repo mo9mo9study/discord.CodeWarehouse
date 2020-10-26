@@ -10,13 +10,13 @@ const CHANNEL = env.AUTO_ROLE_CHANNEL_ID;
 
 const emojiRoleMap = {
   "🇦": "JOIN_gym",
-  "🇧": "RSS_AWS技術ブログ",
-  "🇨": "RSS_AWS公式",
+  "🇧": "RSS_AWS公式",
+  "🇨": "RSS_AWS技術ブログ",
   "🇩": "RSS_GCP公式",
-  "🇪": "RSS_etc",
-  "🇫": "RSS_itnews",
+  "🇪": "RSS_GCP技術ブログ",
+  "🇫": "RSS_etc",
+  "🇬": "RSS_itnews"
 };
-//  "🇬": ""
 
 const rolesmanagement_text = () => {
   //let strText = '\n対応した役職を付与します\n';
@@ -41,13 +41,13 @@ const embedManegeMessage = {
         inline: true,
       },
       {
-        name: "[:regional_indicator_b: : RSS_AWS技術ブログ]",
-        value: "- #rss-aws-classmethod \n - #rss-aws-serverworks \n - #rss-aws-iret",
+        name: "[:regional_indicator_b: :RSS_AWS公式]",
+        value: "- #rss-aws-公式ブログ \n - #rss-aws-公式最新情報",
         inline: true,
       },
       {
-        name: "[:regional_indicator_c: :RSS_AWS公式]",
-        value: "- #rss-aws-公式ブログ \n - #rss-aws-公式最新情報",
+        name: "[:regional_indicator_c: : RSS_AWS技術ブログ]",
+        value: "- #rss-aws-classmethod \n - #rss-aws-serverworks \n - #rss-aws-iret",
         inline: true,
       },
       {
@@ -56,12 +56,17 @@ const embedManegeMessage = {
         inline: true,
       },
       {
-        name: "[:regional_indicator_e: :RSS_etc]",
-        value: "- #rss-最新文房具",
+        name: "[:regional_indicator_e: :RSS_GCP技術ブログ]",
+        value: "- #rss-gcp-topgate",
         inline: true,
       },
       {
-        name: "[:regional_indicator_f: :RSS_itnews]",
+        name: "[:regional_indicator_f: :RSS_etc]",
+        value: "- #rss-最新文房具 \n - #rss-工具ブログ",
+        inline: true,
+      },
+      {
+        name: "[:regional_indicator_g: :RSS_itnews]",
         value: "- #rss-it-zdnet",
         inline: true,
       },
