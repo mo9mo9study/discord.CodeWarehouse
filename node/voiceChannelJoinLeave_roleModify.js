@@ -19,10 +19,13 @@ client.on("voiceStateUpdate", (before, after) => {
     const workRoomChatRoleId = "763401369784156211";
     // 「ラウンジ用チャット」表示権限ID
     const loungeChatRoleId = "763400537257148446";
+    // 「musicbot操作用」表示権限ID
+    const musicChatRokeId = "710333297598922752"
     // 「作業部屋」ID
     const workRoomVoiceChatId = "683864874539024397";
     // 「ラウンジ」ID
     const loungeVoiceChatId = "603582455756095492";
+    
 
     console.log("before: ", before.channelID, "(after) ", after.channelID);
     // 自分のギルドかつ、入室、退出の場合のみ
@@ -35,6 +38,9 @@ client.on("voiceStateUpdate", (before, after) => {
         }
         if(member.roles.cache.has(loungeChatRoleId)){
             member.roles.remove(loungeChatRoleId);
+        }
+        if(member.roles.cache.has(musicChatRokeId)){
+            member.roles.remove(musicChatRokeId);
         }
 
         if (after.channelID == null) {
@@ -52,10 +58,12 @@ client.on("voiceStateUpdate", (before, after) => {
             // 作業部屋に入室
             if (after.channelID === workRoomVoiceChatId) {
                 member.roles.add(workRoomChatRoleId);
+                member.roles.add(musicChatRokeId);
             }
             // ラウンジに入室
             if (after.channelID === loungeVoiceChatId) {
                 member.roles.add(loungeChatRoleId);
+                member.roles.add(musicChatRokeId);
             }
         }
     }
