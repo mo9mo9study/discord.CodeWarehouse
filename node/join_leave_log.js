@@ -38,7 +38,11 @@ client.on("guildMemberAdd", (member) => {
     const invite = invites.find(i => oldInvites.get(i.code).uses < i.uses)
     console.log(`${member.user.tag} は ${invite.code} を使ってサーバーに参加しました`)
     console.log(invite)
-    let text = `${member.user.username} (__id:${member.user.id}__) が参加しました。【 招待者：<@${invite.inviter.id}> 】`;
+    if (invite.inviter.id == null) {
+      let text = `${member.user.username} (__id:${member.user.id}__) が参加しました。【 参加元：https://mo9mo9study.github.io/discord.web/ 】`;
+    } else {
+      let text = `${member.user.username} (__id:${member.user.id}__) が参加しました。【 招待者：<@${invite.inviter.id}> 】`;
+    }
     sendMessage(member, text);
   });
 });
