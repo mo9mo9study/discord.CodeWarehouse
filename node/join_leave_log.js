@@ -12,6 +12,7 @@ client.on("ready", async () => {
   client.guilds.cache.forEach(guild => {
     guild.fetchInvites().then(invites => {
       allInvites[guild.id] = invites
+      console.log(invites);
     })
   })
   console.log(`Logged in as ${client.user.tag}!`);
@@ -32,6 +33,7 @@ client.on('inviteCreate', (invite) => {
 
 client.on("guildMemberAdd", (member) => {
   console.log("---> 参加時");
+  console.log(`---> 参加者: ${member.user.username}`)
   member.guild.fetchInvites().then(invites => {
     const oldInvites = allInvites[member.guild.id]
     allInvites[member.guild.id] = invites
@@ -39,12 +41,12 @@ client.on("guildMemberAdd", (member) => {
     const invite = invites.find(i => oldInvites.get(i.code).uses < i.uses)
     console.log(`${member.user.tag} は ${invite.code} を使ってサーバーに参加しました`)
     console.log(invite)
-    if (invite.inviter.id) {
+    if (invite.inviter.id === null) {
+      console.log("---> id == null")
+      var text = `${member.user.username} (__id:${member.user.id}__) が参加しました。【 参加元：mo9mo9study.github.io/discord.web/ 】`;
+    } else {
       console.log("---> url")
       var text = `${member.user.username} (__id:${member.user.id}__) が参加しました。【 招待者：<@${invite.inviter.id}> 】`;
-    } else {
-      console.log("---> id == null")
-      var text = `${member.user.username} (__id:${member.user.id}__) が参加しました。【 参加元：https://mo9mo9study.github.io/discord.web/ 】`;
     }
     console.log("---> var/text: ",text)
     sendMessage(member, text);
