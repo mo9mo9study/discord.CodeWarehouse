@@ -4,7 +4,7 @@ from discord.ext import commands
 import discord
 import asyncio
 
-TOKEN = ''
+TOKEN = 'NzcyMzczMDQ5MzYxMDM5NDEy.X55udA.BAo3aX98kqK6CCEWMCnOqlVy7aw'
 bot = commands.Bot(command_prefix="¥",help_command=None)
 
 @bot.event
@@ -24,7 +24,7 @@ async def on_voice_state_update(member, before, after):
 async def mmv(ctx, mention):
     server = bot.get_guild(603582455756095488)
     status = ctx.author.voice
-    member_id = mention[3:21]
+    member_id = mention[-19:-1]
     try:
         member = server.get_member(int(member_id))
     except:
@@ -34,20 +34,19 @@ async def mmv(ctx, mention):
             channel = status.channel
             mention_channel = member.voice.channel
             if channel.id == mention_channel.id:
-                if channel.id == 683864874539024397 or channel.id == 603582455756095492 or channel.id == 685652747076632623 or "２人用" in channel.name:
-                        if member.voice.self_mute:
-                            await ctx.send("対象のユーザーがミュートなので実行されませんでした。")
-                            return
-                        else:
-                            afk_channel = server.get_channel(778975759669788702)
-                            await member.move_to(afk_channel)
-                            await member.edit(mute=True)
-                            for channel in server.text_channels:
-                                if channel.topic == str(member_id):
-                                    await channel.send(f"{mention} 寝落ちされていたようなので、ミュート＆移動しました。")
-                                    break
-                            else:
-                                await ctx.send('チャンネルが見つかりませんでした。')
+                if member.voice.self_mute:
+                    await ctx.send("対象のユーザーがミュートなので実行されませんでした。")
+                    return
+                else:
+                    afk_channel = server.get_channel(778975759669788702)
+                    await member.move_to(afk_channel)
+                    await member.edit(mute=True)
+                    for channel in server.text_channels:
+                        if channel.topic == str(member_id):
+                            await channel.send(f"{mention} 寝落ちされていたようなので、ミュート＆移動しました。")
+                            break
+                    else:
+                        await ctx.send('チャンネルが見つかりませんでした。')
             else:
                 await ctx.send("同じvcチャンネルに参加してください。")
         else:
