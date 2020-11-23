@@ -15,8 +15,10 @@ Bot credential
 dToken = os.environ.get("DISCORD_BOT_TOKEN")
 # Cron
 cToken = os.environ.get("CRON_BOT_TOKEN")
-# テスト007
+# テスト用
 tToken = os.environ.get("TEST_BOT_TOKEN")
+# 管理
+mToken = os.environ.get("MANAGER_BOT_TOKEN")
 
 
 """==============================
@@ -34,6 +36,8 @@ sChannel = int(os.environ.get("SLOT_RESULT_CHANNEL_ID"))
 wChannel = int(os.environ.get("WEEK_RECORD_CHANNEL_ID"))
 ## 月間勉強集計
 mChannel = int(os.environ.get("MONTH_RECORD_CHANNEL_ID"))
+## AFK
+afkChannel = int((os.environ.get("AFK_CHANNEL_ID")
 
 # role
 tServer = int(os.environ.get("TEST_SEVER_ID"))
