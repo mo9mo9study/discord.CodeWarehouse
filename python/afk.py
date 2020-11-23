@@ -3,8 +3,13 @@
 from discord.ext import commands
 import discord
 import asyncio
+import setting
 
-TOKEN = 'NzcyMzczMDQ5MzYxMDM5NDEy.X55udA.BAo3aX98kqK6CCEWMCnOqlVy7aw'
+TOKEN           = setting.mToken
+SERVER          = setting.dServer
+VOICE_CHANNEL   = setting.afkChannel
+
+
 bot = commands.Bot(command_prefix="¥",help_command=None)
 
 @bot.event
@@ -22,7 +27,7 @@ async def on_voice_state_update(member, before, after):
 
 @bot.command()
 async def mmv(ctx, mention):
-    server = bot.get_guild(603582455756095488)
+    server = bot.get_guild(SERVER)
     status = ctx.author.voice
     member_id = mention[-19:-1]
     try:
@@ -30,6 +35,9 @@ async def mmv(ctx, mention):
     except:
         await ctx.send("`¥mmv {Mention}`と入力してください。")
     else:
+        print("======")
+        print(member)
+        print("======")
         if status is not None and member.voice is not None:
             channel = status.channel
             mention_channel = member.voice.channel
@@ -38,7 +46,7 @@ async def mmv(ctx, mention):
                     await ctx.send("対象のユーザーがミュートなので実行されませんでした。")
                     return
                 else:
-                    afk_channel = server.get_channel(778975759669788702)
+                    afk_channel = server.get_channel(VOICE_CHANNEL)
                     await member.move_to(afk_channel)
                     await member.edit(mute=True)
                     for channel in server.text_channels:
