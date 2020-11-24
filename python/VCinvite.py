@@ -6,7 +6,7 @@ import asyncio
 
 prefix = "/" #お好きなprefixに変更してください
 
-TOKEN = 'NzcyMzczMDQ5MzYxMDM5NDEy.X55udA.LFu_ycahQZTVmYIswSH3o3GkEDQ' #ご自身のtokenを入力してください
+TOKEN = 'NzcyMzczMDQ5MzYxMDM5NDEy.X55udA.4Cm8cAuK2r0_deqkzyZ45gz9WDY' #ご自身のtokenを入力してください
 bot = commands.Bot(command_prefix=prefix,help_command=None)
 
 @bot.event
@@ -49,9 +49,18 @@ async def vc(ctx,mention):
             await ctx.send("`¥vc {Mention}`と入力してください。")
         else:
             if status.channel.user_limit != 1:
-                dm = await member.create_dm()
-                url = await status.channel.create_invite(max_uses=1,reason=f"{ctx.author.name}が{member.name}を{status.channel.name}に招待しました")
-                await dm.send(f"{ctx.author.name}が{status.channel.name}に招待しました\n{url}")
+                try:
+                    member_channel_id = member.voice.channel.id
+                except:
+                    dm = await member.create_dm()
+                    url = await status.channel.create_invite(max_age=30 * 60, max_uses=1,
+                                                             reason=f"{ctx.author.name}が{member.name}を{status.channel.name}に招待しました")
+                    await dm.send(f"{ctx.author.name}が{status.channel.name}に招待しました\n{url}")
+                else:
+                    if member_channel_id != status.channel.id:
+                        dm = await member.create_dm()
+                        url = await status.channel.create_invite(max_age=30*60,max_uses=1,reason=f"{ctx.author.name}が{member.name}を{status.channel.name}に招待しました")
+                        await dm.send(f"{ctx.author.name}が{status.channel.name}に招待しました\n{url}")
             else:
                 await ctx.send("vcが満員なため、招待出来ませんでした。")
     else:
