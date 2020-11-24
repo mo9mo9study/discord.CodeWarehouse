@@ -37,7 +37,7 @@ wChannel = int(os.environ.get("WEEK_RECORD_CHANNEL_ID"))
 ## 月間勉強集計
 mChannel = int(os.environ.get("MONTH_RECORD_CHANNEL_ID"))
 ## AFK
-afkChannel = int((os.environ.get("AFK_CHANNEL_ID")
+afkChannel = int(os.environ.get("AFK_CHANNEL_ID"))
 
 # role
 tServer = int(os.environ.get("TEST_SEVER_ID"))
