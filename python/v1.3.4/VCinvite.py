@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import sys
+import os
+
 from discord.ext import commands
 import discord
 import asyncio
-import setting 
+
+sys.path.append(os.path.abspath(".."))
+
+import setting
 
 prefix = "¥"
 
