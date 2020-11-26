@@ -60,8 +60,4 @@ async def mmv(ctx, mention):
         else:
             await ctx.send("vcに参加してください。")
 
-@bot.command()
-async def m(ctx):
-    await ctx.author.edit(mute=False)
-
 bot.run(TOKEN)
