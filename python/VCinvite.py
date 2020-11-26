@@ -3,10 +3,11 @@
 from discord.ext import commands
 import discord
 import asyncio
+import setting 
 
-prefix = "/" #お好きなprefixに変更してください
+prefix = "¥"
 
-TOKEN = '' #ご自身のtokenを入力してください
+TOKEN = setting.mToken
 bot = commands.Bot(command_prefix=prefix,help_command=None)
 
 @bot.event
@@ -22,7 +23,7 @@ async def on_raw_reaction_add(payload):
     if str(payload.emoji) == "⛔":
         channel = payload.member.guild.get_channel(payload.channel_id)
         msg = await channel.fetch_message(payload.message_id)
-        if msg.content[0:3] == "/vc" and msg.content[-19:-1].isdecimal():
+        if msg.content[0:3] == "¥vc" and msg.content[-19:-1].isdecimal():
             try:
                 member = payload.member.guild.get_member(int(msg.content[-19:-1] ))
             except:
