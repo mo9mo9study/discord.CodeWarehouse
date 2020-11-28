@@ -12,13 +12,9 @@ VOICE_CHANNEL   = setting.afkChannel
 
 bot = commands.Bot(command_prefix="¥",help_command=None)
 
-@bot.event
-async def on_ready():
-    print('--------------------')
-    print('起動中...')
-    print('BOT NAME : ' + bot.user.name)
-    print('BOT ID : ' + str(bot.user.id))
-    print('--------------------')
+bot.load_extension("Cogs.unmute")
+bot.load_extension("Cogs.default")
+
 
 @bot.event
 async def on_voice_state_update(member, before, after):
@@ -60,8 +56,5 @@ async def mmv(ctx, mention):
         else:
             await ctx.send("vcに参加してください。")
 
-@bot.command()
-async def m(ctx):
-    await ctx.author.edit(mute=False)
 
 bot.run(TOKEN)
