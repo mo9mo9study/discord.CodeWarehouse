@@ -13,8 +13,9 @@ import setting
 
 prefix = "¥"
 
+intents = discord.Intents.all()
 TOKEN = setting.mToken
-bot = commands.Bot(command_prefix=prefix,help_command=None)
+bot = commands.Bot(command_prefix=prefix,help_command=None,intents=intents)
 
 @bot.event
 async def on_ready():
