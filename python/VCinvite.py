@@ -1,28 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import os
-
 from discord.ext import commands
 import discord
 import asyncio
-
-sys.path.append(os.path.abspath(".."))
-
 import setting
 
 prefix = "¥"
 
+intents = discord.Intents.all()
 TOKEN = setting.mToken
-bot = commands.Bot(command_prefix=prefix,help_command=None)
+bot = commands.Bot(command_prefix=prefix,help_command=None,intents=intents)
 
-@bot.event
-async def on_ready():
-    print('--------------------')
-    print('起動中...')
-    print('BOT NAME : ' + bot.user.name)
-    print('BOT ID : ' + str(bot.user.id))
-    print('--------------------')
+bot.load_extension("Cogs.default")
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -62,11 +51,13 @@ async def vc(ctx,mention):
                     dm = await member.create_dm()
                     url = await status.channel.create_invite(max_age=30 * 60, max_uses=1, reason=f"{ctx.author.name}が{member.name}を{status.channel.name}に招待しました")
                     await dm.send(f"{ctx.author.name}が{status.channel.name}に招待しました\n{url}")
+                    await ctx.send(f"{member.name}にボイスチャンネル[ {status.channel.name} ]への招条状を送りました")
                 else:
                     if member_channel_id != status.channel.id:
                         dm = await member.create_dm()
                         url = await status.channel.create_invite(max_age=30*60,max_uses=1,reason=f"{ctx.author.name}が{member.name}を{status.channel.name}に招待しました")
                         await dm.send(f"{ctx.author.name}が{status.channel.name}に招待しました\n{url}")
+                        await ctx.send(f"{member.name}にボイスチャンネル[ {status.channel.name} ]への招条状を送りました")
             else:
                 await ctx.send("vcが満員なため、招待出来ませんでした。")
     else:
