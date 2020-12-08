@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from discord.ext import commands
 import discord
 import asyncio
@@ -23,27 +21,21 @@ class VoiceJoin_Role(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self,member, before, after):
-        print(0)
-        print("after: ", after)
-        print("before: ", before)
-        if after.channel != before.channel: 
-            print("-------------------")
-            print(member.name)
-            print(1)
-            if after.channel is not None:                         #vc参加時
-                print(2)
-                if after.channel.id == workRoomVoiceChatId:
-                    print("after: ",after.channel.name)
-                    print(3)
-                    await self.AddRole(member, musicChatRokeId, workRoomChatRoleId)
-                elif after.channel.id == loungeVoiceChatId:
-                    print(4)
-                    await self.AddRole(member, musicChatRokeId, loungeChatRoleId)
-            if before.channel is not None:                        #vc退席時
-                print("before: ",before.channel.name)
-                print(5)
-                if before.channel.id in (workRoomVoiceChatId, loungeVoiceChatId):
-                    await self.RemoveRole(member, musicChatRokeId, workRoomChatRoleId, loungeChatRoleId)
+        if before.channel is not None:                        #vc退席時
+            print("before: ",before.channel.name)
+            print(5)
+            if before.channel.id in (workRoomVoiceChatId, loungeVoiceChatId):
+                await self.RemoveRole(member, musicChatRokeId, workRoomChatRoleId, loungeChatRoleId)
+        if after.channel is not None:                         #vc参加時
+            print(2)
+            if after.channel.id == workRoomVoiceChatId:
+                print("after: ",after.channel.name)
+                print(3)
+                await self.AddRole(member, musicChatRokeId, workRoomChatRoleId)
+            elif after.channel.id == loungeVoiceChatId:
+                print(4)
+                await self.AddRole(member, musicChatRokeId, loungeChatRoleId)
+
 
     async def AddRole(self,member,*args):
         print(6)
