@@ -12,6 +12,6 @@ bot = commands.Bot(command_prefix=prefix,help_command=None,intents=intents)
 
 bot.load_extension("Cogs.default")
 bot.load_extension("Cogs.Managements.voiceChannelJoinLeave_roleModify")
-bot.load_extension("Cogs.Managements.rolemaneger")
+bot.load_extension("Cogs.Managements.rolesmanager")
 
 bot.run(TOKEN)
