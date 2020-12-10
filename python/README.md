@@ -82,3 +82,17 @@ $ pip install -r requirements.txt
 付与した結果に応じて指定した並びで出力された時
 別のチャンネルに「大当たり」メッセージを出力する
 ```
+
+## ファイルの説明
+
+python/
+┣ afk.py : 寝落ちした人を移動してサーバーミュートする機能
+┣ PersonalPin.py : ギルド内のメッセージを自分の times にピン留めする機能
+┣ slot_studyrecord.py : 勉強をするとランダムでスロットが周り、たまに大当たりする機能
+┣ VCinvente.py : 今いる VC への招待リンクを対象の DM に送りつける機能
+┣ management.py : Cogs/Managements 配下の機能を呼び出す・まとめて管理・実行する機能
+┗ Cogs/
+┣ default.py : Bot 起動時の on_ready のイベントをまとめたもの
+┣ unmute.py :afk.py に呼び出され、サーバーミュートを解除する機能
+┗ Managements/
+┗ voiceChannelJoinLeave_roleModify.py : ラウンジと作業部屋の VC 参加時に対応したチャンネルを閲覧可能にする機能
