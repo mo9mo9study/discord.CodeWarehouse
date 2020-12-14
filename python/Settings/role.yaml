@@ -1,6 +1,6 @@
 #roles_id : 付与したいロールのid
 #reaction : 判定したい絵文字
-#subChannel_id : reactionが押された時に見れるようになるチャンネルのid
+#subChannel_id : reactionが押された時に見れるようになるチャンネルのid,「#」はコード内で追記している
 
 roles:
   -
@@ -8,50 +8,50 @@ roles:
     role_name: JOIN_gym
     reaction: 🇦
     subChannel_name:
-      - #gym
+      - gym
 
   -
     roles_id: 704591918549565440
     role_name: RSS_AWS公式
     reaction: 🇧
     subChannel_name:
-        - #rss-aws-公式ブログ
-        - #rss-aws-公式最新情報
+        - rss-aws-公式ブログ
+        - rss-aws-公式最新情報
 
   -
     roles_id: 680507209431384082
     role_name: RSS_AWS技術ブログ
     reaction: 🇨
     subChannel_name:
-        - #rss-aws-classmethod
-        - #rss-aws-serverworks
-        - #rss-aws-iret
+        - rss-aws-classmethod
+        - rss-aws-serverworks
+        - rss-aws-iret
 
   -
     roles_id: 724170551119314994
     role_name: RSS_GCP公式
     reaction: 🇩
     subChannel_name:
-        - #rss-gcp-公式ブログ
+        - rss-gcp-公式ブログ
 
   -
     roles_id: 788041124643733505
     role_name: RSS_GCP技術ブログ
     reaction: 🇪
     subChannel_name:
-        - #rss-gcp-topgate
+        - rss-gcp-topgate
 
   -
     roles_id: 763751869423026197
     role_name: RSS_etc
     reaction: 🇫
     subChannel_name:
-        - #rss-最新文房具
-        - #rss-工具ブログ
+        - rss-最新文房具
+        - rss-工具ブログ
 
   -
     roles_id: 763752125779673098
     role_name: RSS_itnews
     reaction: 🇬
     subChannel_name:
-        - #rss-it-zdnet
+        - rss-it-zdnet
