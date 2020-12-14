@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
 import asyncio
-from voiceChannelJoinLeave_roleModify import VoiceJoin_Role
+from .voiceChannelJoinLeave_roleModify import VoiceJoin_Role
 import yaml
 
 class Reaction_AddRole(VoiceJoin_Role):
@@ -13,7 +13,7 @@ class Reaction_AddRole(VoiceJoin_Role):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        with open('role.yaml',encoding="utf-8") as file:
+        with open('Settings/role.yaml',encoding="utf-8") as file:
             self.role = yaml.safe_load(file.read())
 
         channel = self.bot.get_guild(self.guild_id).get_channel(self.channel_id)
@@ -26,6 +26,7 @@ class Reaction_AddRole(VoiceJoin_Role):
         desc = "\n".join(a + " : #" + b for a, b in zip(role_reaction, role_name))
         embed = discord.Embed(title="対応した役職を付与します", description=desc + "\n(※ 🗑️ : 自動で付与/剥奪できる役職全てを剥奪します )")
         for roles in self.role["roles"]:
+            print(roles)
             values = '\n- #'.join(roles['subChannel_name'])
             embed.add_field(name=f"[{roles['reaction']} : {roles['role_name']}]", value=f"- #{values}", inline=True)
         self.message = await channel.send(embed=embed)
