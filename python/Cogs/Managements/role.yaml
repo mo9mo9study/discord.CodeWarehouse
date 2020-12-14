@@ -1,0 +1,59 @@
+#roles_id : 付与したいロールのid
+#reaction : 判定したい絵文字
+#subChannel_id : reactionが押された時に見れるようになるチャンネルのid
+
+roles:
+  -
+    roles_id: 789417941279412
+    role_name: JOIN_gym
+    reaction: 🇦
+    subChannel_name:
+      - gym
+
+  -
+    roles_id:
+    role_name: RSS_AWS公式
+    reaction: 🇧
+    subChannel_name:
+        -
+        -
+
+  -
+    roles_id:
+    role_name: RSS_AWS技術ブログ
+    reaction: 🇨
+    subChannel_name:
+        -
+        -
+
+  -
+    roles_id:
+    role_name: RSS_GCP公式
+    reaction: 🇩
+    subChannel_name:
+        -
+        -
+
+  -
+    roles_id:
+    role_name: RSS_GCP技術ブログ
+    reaction: 🇪
+    subChannel_name:
+        -
+        -
+
+  -
+    roles_id:
+    role_name: RSS_etc
+    reaction: 🇫
+    subChannel_name:
+        -
+        -
+
+  -
+    roles_id:
+    role_name: RSS_itnews
+    reaction: 🇬
+    subChannel_name:
+        -
+        -
