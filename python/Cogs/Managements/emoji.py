@@ -21,5 +21,12 @@ class Emoji(commands.Cog):
             if message.content == emoji:
                 await message.add_reaction(emoji)
 
+    @commands.command()
+    async def emoji(self, ctx, e=None):
+        if e == None:
+            await ctx.send("¥emoji <idを取得したい絵文字>\nと入力してください。")
+        else:
+            await ctx.send(f"\\{e}")
+
 def setup(bot):
     return bot.add_cog(Emoji(bot))
