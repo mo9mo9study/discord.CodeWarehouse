@@ -38,7 +38,7 @@ class PersonalPin(commands.Cog):
                     ChannelID = payload.channel_id
                     MessageID = payload.message_id
                     if channel.id == ChannelID:
-                        message = await bot.get_channel(ChannelID).fetch_message(MessageID)
+                        message = await self.bot.get_channel(ChannelID).fetch_message(MessageID)
                         await message.unpin()
                     else:
                         await channel.send("自分のチャンネルでのみ、ピンを外すことができます。")
