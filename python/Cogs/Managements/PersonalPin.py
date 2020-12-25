@@ -2,6 +2,8 @@ from discord.ext import commands
 import discord
 import asyncio
 
+
+
 class PersonalPin(commands.Cog):
 
     def __init__(self, bot):
@@ -20,12 +22,12 @@ class PersonalPin(commands.Cog):
                         break
                     else:
                         embed = discord.Embed(color=0x80ff00)
-                        embed.add_field(name=WordCount(message.content),value=f"[URL](https://discord.com/channels/{payload.member.guild.id}/{ChannelID}/{MessageID})")
+                        embed.add_field(name=self.WordCount(message.content),value=f"[URL](https://discord.com/channels/{payload.member.guild.id}/{ChannelID}/{MessageID})")
                         msg = await channel.send(embed=embed)
                         try:
-                            await ctx.message.pin()
+                            await msg.pin()
                         except Exception as x:
-                            await ctx.send("pin数が上限に達しました。")
+                            await msg.send("pin数が上限に達しました。")
                         else:
                             await msg.pin()
                         break
