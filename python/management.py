@@ -16,5 +16,6 @@ bot.load_extension("Cogs.Managements.rolesmanager")
 bot.load_extension("Cogs.Managements.emoji")
 bot.load_extension("Cogs.Managements.PersonalPin")
 bot.load_extension("Cogs.Managements.VCinvite")
+bot.load_extension("Cogs.Managements.view_TimesChannel")
 
 bot.run(TOKEN)
