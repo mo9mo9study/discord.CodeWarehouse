@@ -14,9 +14,7 @@ class ViewTimesChannel(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.select_channel = self.bot.get_guild(self.guild_id).get_channel(self.channel_id)
-        messages = await self.select_channel.history().flatten()
-        for message in messages:
-            await message.delete()
+        await self.select_channel.purge()
 
         embed = discord.Embed(title="各自timesへの移動を簡単にします", description="- あなたのtimesへのリンク(移動手段)を5秒表示します")
         embed.add_field(name="👇 使い方", value="（超簡単）このメッセージにリアクションをするだけ‼️ ")
@@ -36,7 +34,7 @@ class ViewTimesChannel(commands.Cog):
                 if channel.topic == str(member_id):
                     msg = await self.select_channel.send(channel.mention)
                     await select_msg.remove_reaction(payload.emoji, payload.member)
-                    await self.time_sleep(msg, payload)
+                    await self.time_sleep(msg)
                     break
             else:
                 msg = await self.select_channel.send("timesチャンネルが見つかりませんでした。")
