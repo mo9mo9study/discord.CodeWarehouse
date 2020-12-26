@@ -13,14 +13,12 @@ class ViewTimesChannel(commands.Cog):
     # 移動用のembedメッセージ
     @commands.Cog.listener()
     async def on_ready(self):
-        self.select_channel = self.bot.get_guild(self.guild_id).get_channel(self.channel_id)
-        messages = await self.select_channel.history().flatten()
-        for message in messages:
-            await message.delete()
+        self.channel = self.bot.get_guild(self.guild_id).get_channel(self.channel_id)
+        await self.channel.purge()
 
         embed = discord.Embed(title="各自timesへの移動を簡単にします", description="- あなたのtimesへのリンク(移動手段)を5秒表示します")
-        embed.add_field(name="👇 使い方", value="（超簡単）このメッセージにリアクションをするだけ‼️ ")
-        self.message = await self.select_channel.send(embed=embed)
+        embed.add_field(name=" 👇 使い方", value="（超簡単）このメッセージにリアクションをするだけ‼️ ")
+        self.message = await self.channel.send(embed=embed)
         self.message_id = self.message.id
         await self.message.add_reaction("🛎️")
 
@@ -30,16 +28,16 @@ class ViewTimesChannel(commands.Cog):
             return
         if payload.message_id == self.message_id:
             member_id = payload.member.id
-            select_msg = await self.select_channel.fetch_message(payload.message_id)
+            select_msg = await self.channel.fetch_message(payload.message_id)
 
-            for channel in payload.member.guild.text_channels:
-                if channel.topic == str(member_id):
-                    msg = await self.select_channel.send(channel.mention)
+            for times_channel in payload.member.guild.text_channels:
+                if times_channel.topic == str(member_id):
+                    msg = await self.channel.send(times_channel.mention)
+                    await self.time_sleep(msg)
                     await select_msg.remove_reaction(payload.emoji, payload.member)
-                    await self.time_sleep(msg, payload)
                     break
             else:
-                msg = await self.select_channel.send("timesチャンネルが見つかりませんでした。")
+                msg = await self.channel.send("timesチャンネルが見つかりませんでした。")
                 await self.time_sleep(msg)
 
     async def time_sleep(self,msg):

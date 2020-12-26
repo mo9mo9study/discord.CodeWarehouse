@@ -17,9 +17,7 @@ class Reaction_AddRole(VoiceJoin_Role):
             self.role = yaml.safe_load(file.read())
 
         channel = self.bot.get_guild(self.guild_id).get_channel(self.channel_id)
-        messages = await channel.history(limit=1).flatten()
-        for message in messages:
-            await message.delete()
+        await self.channel.purge()
 
         role_name = map(lambda role_obj: role_obj["role_name"], self.role["roles"])
         role_reaction = map(lambda role_obj: role_obj["reaction"], self.role["roles"])
