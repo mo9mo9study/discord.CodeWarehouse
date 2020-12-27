@@ -49,7 +49,7 @@ class VoiceJoin_Role(commands.Cog):
         print(6)
         for role_id in args:
             role = member.guild.get_role(role_id)
-            print("付与した権限名: ",role.name)
+            print(f"付与した権限名: {role.name} (Name: {member.name})")
             await member.add_roles(role)
         print("入室後の付与されている権限: ",member.roles)
 
@@ -57,7 +57,8 @@ class VoiceJoin_Role(commands.Cog):
         print(7)
         for role_id in args:
             role = member.guild.get_role(role_id)
-            print("剥奪した権限名: ",role.name)
+            #print("剥奪した権限名: ",role.name)
+            print(f"剥奪した権限名: {role.name} (Name: {member.name})")
             await member.remove_roles(role)
         print("退室後の付与されている権限: ",member.roles)
 
