@@ -16,7 +16,7 @@ class Reaction_AddRole(VoiceJoin_Role):
         with open('Settings/role.yaml',encoding="utf-8") as file:
             self.role = yaml.safe_load(file.read())
 
-        channel = self.bot.get_guild(self.guild_id).get_channel(self.channel_id)
+        self.channel = self.bot.get_guild(self.guild_id).get_channel(self.channel_id)
         await self.channel.purge()
 
         role_name = map(lambda role_obj: role_obj["role_name"], self.role["roles"])
@@ -24,10 +24,9 @@ class Reaction_AddRole(VoiceJoin_Role):
         desc = "\n".join(a + " : #" + b for a, b in zip(role_reaction, role_name))
         embed = discord.Embed(title="対応した役職を付与します", description=desc + "\n(※ 🗑️ : 自動で付与/剥奪できる役職全てを剥奪します )")
         for roles in self.role["roles"]:
-            print(roles)
             values = '\n- #'.join(roles['subChannel_name'])
             embed.add_field(name=f"[{roles['reaction']} : {roles['role_name']}]", value=f"- #{values}", inline=True)
-        self.message = await channel.send(embed=embed)
+        self.message = await self.channel.send(embed=embed)
         self.message_id = self.message.id
 
         for roles in self.role["roles"]:
@@ -38,11 +37,10 @@ class Reaction_AddRole(VoiceJoin_Role):
         if payload.member.bot:
             return
         if payload.message_id == self.message_id:
-            channel = payload.member.guild.get_channel(self.channel_id)
-            await self.wastebasket(payload, channel)
+            await self.wastebasket(payload, self.channel)
             for roles in self.role["roles"]:
                 await self.Add_Reaction(payload, roles["reaction"], roles["roles_id"])
-            await self.send_message("add",payload,payload.member,channel)
+            await self.send_message("add",payload,payload.member,self.channel)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self,payload):
@@ -59,8 +57,7 @@ class Reaction_AddRole(VoiceJoin_Role):
             else:
                 for roles in self.role["roles"]:
                     await self.Remove_Reaction(payload, member, roles["reaction"], roles["roles_id"])
-                channel = guild.get_channel(self.channel_id)
-                await self.send_message("remove",payload,member,channel)
+                await self.send_message("remove",payload,member,self.channel)
 
     async def Add_Reaction(self, payload, reaction, *args):
         if str(payload.emoji) == reaction:
