@@ -42,34 +42,41 @@ class Self_Introduction(commands.Cog):
                     #channelを見つけたらそのチャンネル内の合計メッセージ数を取得する
                     count = await self.get_count(channel)
 
-                    #channel内のメッセージ数が6じゃなく、¥editコマンドが送信された時の処理
-                    if count != 6 and message.content.startswith("¥edit"):
+                    #channel内のメッセージ数が7じゃなく、¥editコマンドが送信された時の処理
+                    if count != 7 and message.content.startswith("¥edit"):
                         await message.channel.send("自己紹介を登録してから¥editコマンドを使用して下さい。")
                         break
                     #メッセージ数が0の時の処理(名前が格納される)
                     if count == 0:
-                        await self.send_message(channel, message, "> TwitterIDを入力してください\n@マークは要りません")
+                        await self.send_message(channel, message, "性別を教えて下さい。\n[男/女/非公開]から選んで送信してください")
                         break
-                    #メッセージ数が1の時(TwitterIDが格納される)
+                    #メッセージ数が1の時(性別が格納される)
                     elif count == 1:
+                        if message.content in ["男","女","非公開"]:
+                            await self.send_message(channel, message, "> TwitterIDを入力してください\n@マークは要りません")
+                        else:
+                            await message.channel.send("[男/女/非公開]から選んで送信してください")
+                        break
+                    #メッセージ数が2の時(TwitterIDが格納される)
+                    elif count == 2:
                         await self.send_message(channel, message, "> 得意分野は何ですか？")
                         break
-                    #メッセージ数が2の時(得意分野が格納される)
-                    elif count == 2:
+                    #メッセージ数が3の時(得意分野が格納される)
+                    elif count == 3:
                         await self.send_message(channel, message, "> 今まで何を勉強してきましたか？")
                         break
-                    #メッセージ数が3の時(今まで勉強してきたことが格納される)
-                    elif count == 3:
+                    #メッセージ数が4の時(今まで勉強してきたことが格納される)
+                    elif count == 4:
                         await self.send_message(channel, message, "> これから勉強していきたいことは何ですか？")
                         break
-                    #メッセージ数が4の時(これから勉強していきたいことが格納される)
-                    elif count == 4:
+                    #メッセージ数が5の時(これから勉強していきたいことが格納される)
+                    elif count == 5:
                         await self.send_message(channel, message, "> これで質問は終了です")
-                        await self.complete(channel,message)
+                        await self.complete(channel, message)
                         break
 
-                    #メッセージ数が6かつ¥editコマンドを送信した場合の処理
-                    elif count == 6 and message.content.startswith("¥edit"):
+                    #メッセージ数が7かつ¥editコマンドを送信した場合の処理
+                    elif count == 7 and message.content.startswith("¥edit"):
                         await message.channel.send("自己紹介文を再登録します。")
                         #channel内の一番下のメッセージ(mo9mo9サーバーの自己紹介に送られたembedメッセージid)を取得する
                         msg = await channel.history(limit=None).flatten()
@@ -83,8 +90,8 @@ class Self_Introduction(commands.Cog):
                         await self.DEBUG_GUILD.create_text_channel(str(message.author.id))
                         await message.channel.send("> 名前を入力してください")
                         break
-                    #メッセージ数が6の時
-                    elif count == 6:
+                    #メッセージ数が7の時
+                    elif count == 7:
                         await message.channel.send(f"{message.author.name}さんの自己紹介文は既に登録済みです。\n変更する場合は、¥editコマンドを送信して下さい")
                         break
             #DEBUGサーバー内にメッセージ送信者のチャンネルが見つからなかったときに、TextChanenlを作成する
@@ -136,14 +143,25 @@ class Self_Introduction(commands.Cog):
     #Embedオブジェクトを作成するメソッド
     #質問内容を追加する場合は、ここを弄る
     def add_embed(self, list, member):
-        embed = discord.Embed(title="自己紹介")
+        embed = discord.Embed(title="自己紹介", color=self.gender_color(list[1]))
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="名前", value=list[0], inline=False)
-        embed.add_field(name="TwitterID", value=f"@{list[1]}", inline=False)
-        embed.add_field(name="得意分野", value=list[2], inline=False)
-        embed.add_field(name="今まで勉強してきたこと", value=list[3], inline=False)
-        embed.add_field(name="これから勉強していきたいこと", value=list[4], inline=False)
+        embed.add_field(name="性別", value=list[1])
+        embed.add_field(name="TwitterID", value=f"@{list[2]}", inline=False)
+        embed.add_field(name="得意分野", value=list[3], inline=False)
+        embed.add_field(name="今まで勉強してきたこと", value=list[4], inline=False)
+        embed.add_field(name="これから勉強していきたいこと", value=list[5], inline=False)
         return embed
+
+    #---add_embedメソッド内でのみ呼び出される---
+    #入力された性別によって、embedのカラーを変える
+    def gender_color(self, gender):
+        if gender in "男":
+            return 0x4093cf
+        elif gender in "女":
+            return 0xba3fb4
+        elif gender in "非公開":
+            return 0x51c447
 
     #---completeメソッド内でのみ呼び出される---
     #channel内のメッセージlistの並びを逆にし、disocrd.Messageオブジェクトじゃなくdiscord.Message.Contentを格納
