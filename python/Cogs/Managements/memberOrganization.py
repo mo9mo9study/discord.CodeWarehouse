@@ -6,7 +6,7 @@ class MemberOrganization(commands.Cog):
 
     def __init__(self,bot):
         self.bot = bot
-        self.GUILD_ID = 603582455756095488 #mo9mo9サーバーのid
+        self.GUILD_ID = 770973096215707648 #mo9mo9サーバーのid
         self.list = [] #addコマンドで追加したユーザーを格納するlist
 
     @commands.Cog.listener()
@@ -17,10 +17,6 @@ class MemberOrganization(commands.Cog):
     @commands.group(name="kick", invoke_without_command=True)
     @commands.has_permissions(administrator=True)
     async def kick(self, ctx):
-        #管理者のみ実行可能
-        if not ctx.author.guild_permissions.administrator:
-            await ctx.send("管理者専用コマンドです。")
-            return
         if ctx.invoked_subcommand is None:
             await ctx.send("SubCommandを指定してください\n[add/remove/list/run/reset]")
 
@@ -71,13 +67,17 @@ class MemberOrganization(commands.Cog):
         # 要素ごとに改行を挟む
         display_list = "\n".join(display_list)
         # 現在のlistに追加されている人数とlist内の人全員を表示
-        count = len(display_list)
+        count = len(self.list)
         await ctx.send(f"現在{str(count)}人がlistに入っています。\n{display_list}")
 
     # ---対象者に処理を実行するコマンド---
     @kick.group(name="run")
     @commands.has_permissions(administrator=True)
     async def _run(self, ctx):
+        count = len(self.list)
+        if count == 0:
+            await ctx.send("listにメンバーが追加されていないので、実行されませんでした。")
+            return
         await ctx.send("処理を開始します。")
         for member in self.list:
             # 自動メッセージを対象者のDMに送る
@@ -98,7 +98,7 @@ class MemberOrganization(commands.Cog):
         self.list = []
         await ctx.send("対象者listをリセットしました")
 
-    #権限がなかった時の処理
+    # 権限がなかった時の処理
     @kick.error
     @_add.error
     @_remove.error
@@ -129,7 +129,7 @@ class MemberOrganization(commands.Cog):
             if user is None:
                 await ctx.send("userが見つかりませんでした。\nidが間違ってないか確認してください。")
                 return False, None
-            return True , user
+            return True, user
 
 txt = """
 当ギルド[ もくもくOnline勉強会 ]で
