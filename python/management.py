@@ -18,6 +18,7 @@ bot.load_extension("Cogs.Managements.emoji")
 bot.load_extension("Cogs.Managements.PersonalPin")
 bot.load_extension("Cogs.Managements.VCinvite")
 bot.load_extension("Cogs.Managements.view_TimesChannel")
+bot.load_extension("Cogs.Managemetns.memberOrganization")
 bot.load_extension("Cogs.afk.afk")
 bot.load_extension("Cogs.afk.unmute")
 
