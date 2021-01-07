@@ -6,7 +6,7 @@ class MemberOrganization(commands.Cog):
 
     def __init__(self,bot):
         self.bot = bot
-        self.GUILD_ID = 770973096215707648 #mo9mo9サーバーのid
+        self.GUILD_ID = 603582455756095488 #mo9mo9サーバーのid
         self.list = [] #addコマンドで追加したユーザーを格納するlist
 
     @commands.Cog.listener()
