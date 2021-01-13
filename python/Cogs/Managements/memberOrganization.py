@@ -90,6 +90,7 @@ class MemberOrganization(commands.Cog):
                     break
             # メンバーをキック
             await member.kick()
+        self.list.clear()
 
     # ---対象者listをリセットする---
     @kick.group(name="reset")
