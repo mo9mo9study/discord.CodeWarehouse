@@ -6,8 +6,8 @@ class CreateStudyDesk(commands.Cog):
 
     def __init__(self,bot):
         self.bot = bot
-        self.GUILD_ID = 770973096215707648
-        self.CATEGORY_ID = 770973096215707650
+        self.GUILD_ID = 603582455756095488
+        self.CATEGORY_ID = 603582455756095491
 
     @commands.Cog.listener()
     async def on_ready(self):
