@@ -47,11 +47,11 @@ class Self_Introduction(commands.Cog):
         #    return
         dm = await message.author.create_dm()
         if isinstance(message.channel, discord.DMChannel):
-            if message.content == "":                    
-                await dm.send(embed=self.strfembed("自己紹介の編集中です\n文字列を送信してください"))
-                return
             # 送信者がbotの場合は無視する
             if message.author.bot:
+                return
+            if message.content == "":                    
+                await dm.send(embed=self.strfembed("自己紹介の編集中です\n文字列を送信してください"))
                 return
             for channel in self.DEBUG_GUILD.text_channels:
                 # DEBUGサーバーからメッセージ送信者のidと同じ名前のTextChannelを見つける
