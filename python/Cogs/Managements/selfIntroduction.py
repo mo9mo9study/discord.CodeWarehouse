@@ -42,10 +42,6 @@ class Self_Introduction(commands.Cog):
     # DMチャンネルにメッセージが送られた時
     @commands.Cog.listener()
     async def on_message(self, message):
-        #if message.content.startswith("¥predit"): 
-        #    print("コマンドおおおおおお")
-        #    return
-        dm = await message.author.create_dm()
         if isinstance(message.channel, discord.DMChannel):
             # 送信者がbotの場合は無視する
             if message.author.bot:
@@ -53,6 +49,7 @@ class Self_Introduction(commands.Cog):
             if message.content == "":                    
                 await dm.send(embed=self.strfembed("自己紹介の編集中です\n文字列を送信してください"))
                 return
+            dm = await message.author.create_dm()
             for channel in self.DEBUG_GUILD.text_channels:
                 # DEBUGサーバーからメッセージ送信者のidと同じ名前のTextChannelを見つける
                 if channel.name == str(message.author.id):
@@ -182,21 +179,6 @@ class Self_Introduction(commands.Cog):
         await message.channel.send(embed=self.strfembed(self.question1))
 
 
-    # 自己紹介の部分的な修正を行う時の、編集、削除の処理
-    #async def message_editdelete(self, message, editmsg, deletemsg, channel):
-    #    #edit_message = DEBUG_GUILD_CHANNEL.fetch_message(int(editmsg.content))
-    #    edit_message = channel.fetch_message(int(editmsg.content))
-    #    # 8個目の編集対象を示すメッセージオブジェクト削除
-    #    await editmsg.delete()
-    #    # mo9mo9ギルドに送信した自己紹介メッセージを示すメッセージオブジェクト
-    #    await deletemsg.delete()
-    #    #selfintroduction_post_message = DEBUG_GUILD_CHANNEL.fetch_message(int(deletemsg.content))
-    #    selfintroduction_post_message = channel.fetch_message(int(deletemsg.content))
-    #    await selfintroduction_post_message.delete()
-    #    # 編集対象の内容を変更
-    #    edit_message.edit(content=message.content)
-
-
     # ---completeメソッド内でのみ呼び出される---
     # Embedオブジェクトを作成するメソッド
     def strfembed(self, str):
@@ -271,7 +253,7 @@ class Self_Introduction(commands.Cog):
                 # channelを見つけたらそのチャンネル内の合計メッセージ数を取得する
                 messages = await channel.history(limit=None).flatten()
                 if len(messages) != 7:
-                    await dm.send(embed=self.strfembed("自己紹介を登録してから[ ¥predit ]コマンドを使用して下さい。"))
+                    await dm.send(embed=self.strfembed("自己紹介を登録してから[ ¥predit ]コマンドを使用して下さい。\n何かメッセージを送信してみてください"))
                     break
                 # 修正項目を指定するためのリアクションのemojiを配列に格納
                 emoji_number = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣"]
