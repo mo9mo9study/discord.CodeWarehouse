@@ -20,6 +20,7 @@ bot.load_extension("Cogs.Managements.VCinvite")
 bot.load_extension("Cogs.Managements.view_TimesChannel")
 bot.load_extension("Cogs.Managements.createStudyDesk")
 bot.load_extension("Cogs.Managements.memberOrganization")
+bot.load_extension("Cogs.Managements.languageVisuallization")
 bot.load_extension("Cogs.afk.afk")
 bot.load_extension("Cogs.afk.unmute")
 

@@ -1,0 +1,82 @@
+#role_id : 付与したいロールのid
+#language_name : 言語名
+#emoji : 使用する絵文字
+
+languages:
+  -
+    role_id: 802439790813249536
+    language_name: C
+    emoji: <:c:802412282880851979>
+
+  - role_id: 802440210389925898
+    language_name: C#
+    emoji: <:c:802410802489196586>
+
+  - role_id: 802444800422314005
+    language_name: C++
+    emoji: <:c_:802410818360180736>
+
+  - role_id: 802445862571212861
+    language_name: Go
+    emoji: <:go:802410844150431775>
+
+  - role_id: 802456070572343317
+    language_name: Java
+    emoji: <:java:802393767709114388>
+
+  - role_id: 802457283576856586
+    language_name: JavaScript
+    emoji: <:js:802406151609122817>
+
+  - role_id: 802457987233873941
+    language_name: Kotlin
+    emoji: <:kotlin:802406171730378763>
+
+  - role_id: 802457989419106355
+    language_name: Objective-C
+    emoji: <:objectiveC:802406217942302721>
+
+  - role_id: 802457991676559380
+    language_name: PHP
+    emoji: <:php:802406244811014176>
+
+  - role_id: 802457993684975656
+    language_name: Python
+    emoji: <:python:802406265912688660>
+
+  - role_id: 802457995623530506
+    language_name: Ruby
+    emoji: <:ruby:802410898081841192>
+
+  - role_id: 802457997615300639
+    language_name: Scala
+    emoji: <:scala:802406286729543701>
+
+  - role_id: 802458011759018016
+    language_name: Swift
+    emoji: <:swift:802406330715340840>
+
+  - role_id: 802458014199971841
+    language_name: TypeScript
+    emoji: <:typescript:802406356266516500>
+
+  - role_id: 802458016493862932
+    language_name: HTML
+    emoji: <:html:802406130449514507>
+
+  - role_id: 802458018159263767
+    language_name: CSS
+    emoji: <:css:802406107033239552>
+
+  - role_id: 802458020579377172
+    language_name: SQL
+    emoji: <:sql:802406309244043274>
+
+  - role_id: 802458033833639976
+    language_name: VBA
+    emoji: <:vba:802406377305145404>
+
+  - role_id: 802469796171350017
+    language_name: node.js
+    emoji: <:nodejs:802406193724260372>
+
