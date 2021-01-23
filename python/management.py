@@ -1,4 +1,4 @@
-from discord.ext import commands
+)from discord.ext import command1
 import discord
 import asyncio
 
@@ -22,6 +22,7 @@ bot.load_extension("Cogs.Managements.view_TimesChannel")
 bot.load_extension("Cogs.Managements.selfIntroduction")
 bot.load_extension("Cogs.Managements.createStudyDesk")
 bot.load_extension("Cogs.Managements.memberOrganization")
+bot.load_extension("Cogs.Managements.times")
 bot.load_extension("Cogs.afk.afk")
 bot.load_extension("Cogs.afk.unmute")
 
