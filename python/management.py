@@ -1,4 +1,4 @@
-)from discord.ext import command1
+from discord.ext import commands
 import discord
 import asyncio
 
