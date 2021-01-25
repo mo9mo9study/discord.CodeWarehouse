@@ -6,77 +6,81 @@ languages:
   -
     role_id: 802439790813249536
     language_name: C
-    emoji: <:c:802412282880851979>
+    emoji: <:c_:803166892470435850>
 
   - role_id: 802440210389925898
     language_name: C#
-    emoji: <:c:802410802489196586>
+    emoji: <:c_:803166909490003979>
 
   - role_id: 802444800422314005
     language_name: C++
-    emoji: <:c_:802410818360180736>
+    emoji: <:c_:803166931745767474>
 
   - role_id: 802445862571212861
     language_name: Go
-    emoji: <:go:802410844150431775>
+    emoji: <:go:803166981779750973>
 
   - role_id: 802456070572343317
     language_name: Java
-    emoji: <:java:802393767709114388>
+    emoji: <:java:803167025547444230>
 
   - role_id: 802457283576856586
     language_name: JavaScript
-    emoji: <:js:802406151609122817>
+    emoji: <:js:803167044588535808>
 
   - role_id: 802457987233873941
     language_name: Kotlin
-    emoji: <:kotlin:802406171730378763>
+    emoji: <:kotlin:803167065115459625>
 
   - role_id: 802457989419106355
     language_name: Objective-C
-    emoji: <:objectiveC:802406217942302721>
+    emoji: <:objectiveC:803167134682972170>
 
   - role_id: 802457991676559380
     language_name: PHP
-    emoji: <:php:802406244811014176>
+    emoji: <:php:803167160284217375>
 
   - role_id: 802457993684975656
     language_name: Python
-    emoji: <:python:802406265912688660>
+    emoji: <:python:803167191896817725>
 
   - role_id: 802457995623530506
     language_name: Ruby
-    emoji: <:ruby:802410898081841192>
+    emoji: <:ruby:803168675653484584>
 
   - role_id: 802457997615300639
     language_name: Scala
-    emoji: <:scala:802406286729543701>
+    emoji: <:scala:803167284406255627>
 
   - role_id: 802458011759018016
     language_name: Swift
-    emoji: <:swift:802406330715340840>
+    emoji: <:swift:803167365251858452>
 
   - role_id: 802458014199971841
     language_name: TypeScript
-    emoji: <:typescript:802406356266516500>
+    emoji: <:typescript:803167394586558464>
 
   - role_id: 802458016493862932
     language_name: HTML
-    emoji: <:html:802406130449514507>
+    emoji: <:html:803167006937448469>
 
   - role_id: 802458018159263767
     language_name: CSS
-    emoji: <:css:802406107033239552>
+    emoji: <:css:803166953409740820>
 
   - role_id: 802458020579377172
     language_name: SQL
-    emoji: <:sql:802406309244043274>
+    emoji: <:sql:803167339835031592>
 
   - role_id: 802458033833639976
     language_name: VBA
-    emoji: <:vba:802406377305145404>
+    emoji: <:vba:803167413838807110>
 
   - role_id: 802469796171350017
     language_name: node.js
-    emoji: <:nodejs:802406193724260372>
+    emoji: <:nodejs:803167081541271562>
+
+  - role_id: 803171447962468383
+    language_name: flutter
+    emoji: <:flutter:803170567125336104>
 
