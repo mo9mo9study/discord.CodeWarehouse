@@ -24,11 +24,14 @@ class CreateStudyDesk(commands.Cog):
             for channel in vc_list:
                 members = channel.members
                 count = count + len(members)
+            print(len(vc_list))
             if len(vc_list) - count == 1:
-                vc_count = len(self.CATEGORY.voice_channels)
-                pos = vc_count - 4
+                # vc_listで取得する最後の「もくもく勉強机」のポジションが正しいと信じて位置を取得
+                studydesk_lastpos = vc_list[-1].position
+                # 最後の「もくもく勉強机」のポジションの一つ下の位置の数字を変数化
+                create_position = int(studydesk_lastpos) + 1
                 channel = await self.CATEGORY.create_voice_channel(name=f"もくもく勉強机{str(len(vc_list) + 1)}")
-                await channel.edit(position=pos, user_limit=1)
+                await channel.edit(position=create_position, user_limit=1)
                 await self.ANNOUNCE_CHANNEL.send(f"{channel.name}を作成しました : id `{channel.id}`")
                 await self.ANNOUNCE_CHANNEL.send(f"勉強机作成前の合計勉強机数:{len(vc_list)}")
 
