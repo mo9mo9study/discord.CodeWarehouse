@@ -6,9 +6,9 @@ class CreateStudyDesk(commands.Cog):
 
     def __init__(self,bot):
         self.bot = bot
-        self.GUILD_ID = 770973096215707648 #mo9mo9 Guild Id
-        self.CATEGORY_ID = 770973096215707650 #Study Space Category Id
-        self.ANNOUNCE_CHANNEL_ID = 771006468216193064 #通知用 Channel Id
+        self.GUILD_ID = 603582455756095488 #mo9mo9 Guild Id
+        self.CATEGORY_ID = 603582455756095491 #Study Space Category Id
+        self.ANNOUNCE_CHANNEL_ID = 801060150433153054 #通知用 Channel Id
 
     @commands.Cog.listener()
     async def on_ready(self):
