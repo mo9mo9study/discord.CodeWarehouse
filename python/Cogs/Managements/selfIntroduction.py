@@ -8,7 +8,7 @@ class Self_Introduction(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
         self.GUILD_ID = 603582455756095488 #mo9mo9サーバーのID
-        self.INTRODUCTION_CHANNEL_ID = 673006702924136448 #mo9mo9サーバー内の自己紹介チャンネルID
+        self.INTRODUCTION_CHANNEL_ID = 615185771565023244 #mo9mo9サーバー内の自己紹介チャンネルID
         self.DEBUG_GUILD_ID = 795337147149189148 #DEBUGサーバーのID ※変更しないようにお願いします。
         # 以下、質問６項目
         self.question1 = "\> 呼び名を教えてください"

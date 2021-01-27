@@ -30,6 +30,9 @@ class Times(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        # BOTへのメッセージ送信時にもイベントが走るので、BOTのDM上のイベントはreturnする
+        if isinstance(message.channel, discord.DMChannel):
+            return
         if message.channel.category_id == self.ACTIVE_CATEGORY_ID:
             return
         # ---------------times作成処理---------------
@@ -39,7 +42,7 @@ class Times(commands.Cog):
                 user_id = int(user_id)
                 for channel in self.GUILD.text_channels:
                     if channel.topic == str(user_id):
-                        print("timesチャンネルが既に存在するので、作成しませんでした。")
+                        print(f"(userid: {str(user_id)})timesチャンネルが既に存在するので、作成しませんでした。")
                         break
                 else:
                     await self.channelCreateSend(self.getMember(user_id))
