@@ -107,9 +107,9 @@ class Times(commands.Cog):
     #announce用のembedを作成
     def createAnnounce(self):
         az09, other = self.getChannelTotalNumber()
-        embed = discord.Embed(title=f"times_Channel総数:{az09+other}ch")
-        embed.add_field(name=f"{self.az09_Channel.name}のtimes総数", value=f"{az09}ch", inline=False)
-        embed.add_field(name=f"{self.OTHER_CHANNEL.name}のtimes総数", value=f"{other}ch", inline=False)
+        embed = discord.Embed(title=f"times_Channel総数： {az09+other}個")
+        embed.add_field(name=f"{self.az09_Channel.name}の総数：", value=f"{az09}個", inline=True)
+        embed.add_field(name=f"{self.OTHER_CHANNEL.name}の総数：", value=f"{other}個", inline=True)
         return embed
 
     #---createAnnounceメソッドからのみ呼び出される---
