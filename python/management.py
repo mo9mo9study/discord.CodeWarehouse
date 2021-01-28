@@ -26,5 +26,6 @@ bot.load_extension("Cogs.Managements.times")
 bot.load_extension("Cogs.Managements.joinLeaveLog")
 bot.load_extension("Cogs.afk.afk")
 bot.load_extension("Cogs.afk.unmute")
+bot.load_extension("Cogs.Managements.slot_studyrecord")
 
 bot.run(TOKEN)
