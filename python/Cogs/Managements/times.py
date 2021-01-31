@@ -34,6 +34,9 @@ class Times(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        # BOTへのメッセージ送信時にもイベントが走るので、BOTのDM上のイベントはreturnする
+        if isinstance(message.channel, discord.DMChannel):
+            return
         if message.channel.category_id == self.ACTIVE_CATEGORY_ID:
             return
         # ---------------times作成処理---------------
@@ -43,7 +46,7 @@ class Times(commands.Cog):
                 user_id = int(user_id)
                 for channel in self.GUILD.text_channels:
                     if channel.topic == str(user_id):
-                        print("timesチャンネルが既に存在するので、作成しませんでした。")
+                        print(f"(userid: {str(user_id)})timesチャンネルが既に存在するので、作成しませんでした。")
                         break
                 else:
                     await self.channelCreateSend(self.getMember(user_id))
@@ -108,9 +111,9 @@ class Times(commands.Cog):
     #announce用のembedを作成
     def createAnnounce(self):
         az09, other = self.getChannelTotalNumber()
-        embed = discord.Embed(title=f"times_Channel総数:{az09+other}ch")
-        embed.add_field(name=f"{self.az09_Channel.name}のtimes総数", value=f"{az09}ch", inline=False)
-        embed.add_field(name=f"{self.OTHER_CHANNEL.name}のtimes総数", value=f"{other}ch", inline=False)
+        embed = discord.Embed(title=f"times_Channel総数： {az09+other}個")
+        embed.add_field(name=f"{self.az09_Channel.name}の総数：", value=f"{az09}個", inline=True)
+        embed.add_field(name=f"{self.OTHER_CHANNEL.name}の総数：", value=f"{other}個", inline=True)
         return embed
 
     #---createAnnounceメソッドからのみ呼び出される---
@@ -155,6 +158,21 @@ class Times(commands.Cog):
                         await channel.edit(category=self.OTHER_CHANNEL2)
                     else:
                         await channel.edit(category=self.OTHER_CHANNEL)
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def times_reset(self, ctx):
+        for channel in self.getActiveChannels():
+            if channel.name[6].encode('utf-8').isalnum():
+                if self.getChannelCount("az") == 50:
+                    await channel.edit(category=self.az09_Channel2)
+                else:
+                    await channel.edit(category=self.az09_Channel)
+            else:
+                if self.getChannelCount("other") == 50:
+                    await channel.edit(category=self.OTHER_CHANNEL2)
+                else:
+                    await channel.edit(category=self.OTHER_CHANNEL)
 
 def setup(bot):
     return bot.add_cog(Times(bot))
