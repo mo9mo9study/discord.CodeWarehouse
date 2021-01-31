@@ -132,11 +132,11 @@ class Times(commands.Cog):
 
     # ---------------定期処理---------------
     #午前2:00に実行されます
-    @tasks.loop(seconds=59)
+    @tasks.loop(seconds=60)
     async def loop(self):
         await self.bot.wait_until_ready()
         now = datetime.now().strftime('%H:%M')
-        if now == "2:00":
+        if now == "02:00":
             for channel in self.getActiveChannels():
                 if channel.name[6].encode('utf-8').isalnum():
                     await channel.edit(category=self.az09_Channel)
