@@ -143,6 +143,17 @@ class Times(commands.Cog):
                 else:
                     await channel.edit(category=self.OTHER_CHANNEL)
 
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def times_reset(self, ctx):
+        for channel in self.getActiveChannels():
+            if channel.name[6].encode('utf-8').isalnum():
+                print(channel.name[6])
+                await channel.edit(category=self.az09_Channel)
+            else:
+                await channel.edit(category=self.OTHER_CHANNEL)    
+
+
 def setup(bot):
     return bot.add_cog(Times(bot))
 
