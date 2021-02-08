@@ -3,6 +3,8 @@ import discord
 import asyncio
 import yaml
 
+import types
+
 class LanguageVisualization(commands.Cog):
 
     def __init__(self,bot):
@@ -18,13 +20,28 @@ class LanguageVisualization(commands.Cog):
         self.GUILD = self.bot.get_guild(self.GUILD_ID)
         self.CHANNEL = self.GUILD.get_channel(self.CHANNEL_ID)
         messages = await self.CHANNEL.history(limit=1).flatten()
-        for message in messages:
-            await message.delete()
+        #for message in messages:
+        #    await message.delete()
 
         language_name = map(lambda language_obj: language_obj["language_name"], self.language["languages"])
         language_emoji = map(lambda language_obj: language_obj["emoji"], self.language["languages"])
-        desc = "\n".join(a + " : " + b for a, b in zip(language_emoji, language_name))
-        embed = discord.Embed(title="勉強中 or 習得済み言語がある場合は、リアクションを押して登録しましょう！", description=desc + "\n(※ 🗑️ : 自動で付与/剥奪できる役職全てを剥奪します )")
+        language_names = []
+        for i in self.language["languages"]:
+            language_names.append({"language_name":i["language_name"],"emoji":i["emoji"]})
+        #language_names = list(map(lambda language_obj: language_obj["language_name"], self.language["languages"]))
+        #desc = "\n".join(a + " : " + b for a, b in zip(language_emoji, language_name))
+        desc = "\n".join(f"- {a} : {b}" for a, b in zip(language_emoji, language_name))
+        #embed = discord.Embed(title="勉強中 or 習得済み言語がある場合は、リアクションを押して登録しましょう！", description=desc + "\n(※ 🗑️ : 自動で付与/剥奪できる役職全てを剥奪します )")
+        embed = discord.Embed(title="勉強中 or 習得済み言語がある場合は、リアクションを押して登録しましょう！", description=desc)
+        for language in language_names:
+            language_role = discord.utils.get(self.GUILD.roles, name=language["language_name"])
+            if language_role.members:
+                desc = "\n".join("- " + member.name for member in language_role.members)
+                embed.add_field(name=f'{language["emoji"]} {language["language_name"]}', value=desc, inline=True)
+            else:
+                embed.add_field(name=f'{language["emoji"]} {language["language_name"]}', value="none", inline=True)
+        embed.add_field(name="📝 活用方法",value="各言語ごとに役職を用意していて、もし言語についてわからないことがあれば「（例）@Python {聞きたい内容}」の様にメンションをすることで言語の権限を付与しているメンバーに通知が飛ぶようになっています。気軽に活用してみてくださいね", inline=False)
+        embed.add_field(name="📁 全ての言語役職を一括で付与/剥奪する方法", value="「🗑」のリアクションを押してください", inline=True)
         self.message = await self.CHANNEL.send(embed=embed)
         self.message_id = self.message.id
 
