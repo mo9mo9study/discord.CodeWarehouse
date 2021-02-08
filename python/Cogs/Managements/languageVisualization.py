@@ -1,7 +1,6 @@
 from discord.ext import commands,tasks
 import discord
 import asyncio
-from .voiceChannelJoinLeave_roleModify import VoiceJoin_Role
 import yaml
 
 class LanguageVisualization(commands.Cog):
@@ -62,11 +61,21 @@ class LanguageVisualization(commands.Cog):
 
     async def Add_Reaction(self, payload, reaction, *args):
         if str(payload.emoji) == reaction:
-            await VoiceJoin_Role.AddRole(payload.member, *args)
+            await self.AddRole(payload.member, *args)
 
     async def Remove_Reaction(self, payload, member, reaction, *args):
         if str(payload.emoji) == reaction:
-            await VoiceJoin_Role.RemoveRole(member, *args)
+            await self.RemoveRole(member, *args)
+
+    async def AddRole(self,member,*args):
+        for role_id in args:
+            role = member.guild.get_role(role_id)
+            await member.add_roles(role)
+
+    async def RemoveRole(self,member,*args):
+        for role_id in args:
+            role = member.guild.get_role(role_id)
+            await member.remove_roles(role)
 
     async def send_message(self, mode, payload, member, channel):
         if mode == "add":
