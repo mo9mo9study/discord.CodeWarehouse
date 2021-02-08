@@ -76,7 +76,7 @@ languages:
     language_name: VBA
     emoji: <:vba:803167413838807110>
 
-  - role_id: 802469796171350017
+  - role_id: 802458035976536074
     language_name: node.js
     emoji: <:nodejs:803167081541271562>
 
