@@ -1,19 +1,19 @@
 from discord.ext import commands,tasks
 import discord
 import asyncio
-from voiceChannelJoinLeave_roleModify import VoiceJoin_Role
+from .voiceChannelJoinLeave_roleModify import VoiceJoin_Role
 import yaml
 
 class LanguageVisualization(commands.Cog):
 
     def __init__(self,bot):
         self.bot = bot
-        self.GUILD_ID = 770973096215707648
-        self.CHANNEL_ID = 771006468216193064
+        self.GUILD_ID = 603582455756095488
+        self.CHANNEL_ID = 673006702924136448
 
     @commands.Cog.listener()
     async def on_ready(self):
-        with open('Management/language.yaml',encoding="utf-8") as file:
+        with open('Settings/language.yaml',encoding="utf-8") as file:
             self.language = yaml.safe_load(file.read())
 
         self.GUILD = self.bot.get_guild(self.GUILD_ID)
