@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, tasks
 import discord
 import asyncio
 
@@ -13,6 +13,8 @@ bot = commands.Bot(command_prefix=prefix,help_command=None,intents=intents)
 
 bot.load_extension("Cogs.default")
 
+bot.load_extension("Cogs.afk.afk")
+bot.load_extension("Cogs.afk.unmute")
 bot.load_extension("Cogs.Managements.voiceChannelJoinLeave_roleModify")
 bot.load_extension("Cogs.Managements.rolesmanager")
 bot.load_extension("Cogs.Managements.emoji")
@@ -24,8 +26,7 @@ bot.load_extension("Cogs.Managements.createStudyDesk")
 bot.load_extension("Cogs.Managements.memberOrganization")
 bot.load_extension("Cogs.Managements.times")
 bot.load_extension("Cogs.Managements.joinLeaveLog")
-bot.load_extension("Cogs.afk.afk")
-bot.load_extension("Cogs.afk.unmute")
 bot.load_extension("Cogs.Managements.slotstudyrecord")
+bot.load_extension("Cogs.Managements.languageVisualization")
 
 bot.run(TOKEN)
