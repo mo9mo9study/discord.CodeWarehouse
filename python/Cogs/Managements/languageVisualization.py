@@ -3,7 +3,7 @@ import discord
 import asyncio
 import yaml
 
-import types
+from datetime import datetime
 
 class LanguageVisualization(commands.Cog):
 
@@ -12,6 +12,7 @@ class LanguageVisualization(commands.Cog):
         self.GUILD_ID = 603582455756095488
         self.CHANNEL_ID = 809322291813023784
         self.embettitle = "勉強中 or 習得済み言語がある場合は、リアクションを押して登録しましょう！"
+        self.updatelanguagerloop.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -113,7 +114,6 @@ class LanguageVisualization(commands.Cog):
         with open('Settings/language.yaml',encoding="utf-8") as file:
             self.language = yaml.safe_load(file.read())
 
-
     def addembedlanguage(self, embed):
         # embedで使用するオブジェクトの作成
         language_names = []
@@ -129,9 +129,7 @@ class LanguageVisualization(commands.Cog):
                 embed.add_field(name=f'{language["emoji"]} {language["language_name"]}', value="none", inline=True)
         return embed
 
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def embedreset(self, ctx):
+    async def editembedlanguage(self):
         messages = await self.CHANNEL.history(limit=1).flatten()
         for message in messages:
             if message.embeds:
@@ -142,15 +140,19 @@ class LanguageVisualization(commands.Cog):
                     await message.edit(embed=embed)
                     break
 
+    # ---------------定期処理---------------
+    # 言語ロール取得者を表示するfieldを1日1度更新する
+    @tasks.loop(seconds=3600)
+    async def updatelanguagerloop(self):
+        await self.bot.wait_until_ready()
+        now = datetime.now().strftime('%H')
+        if now == "07":
+            await self.editembedlanguage()
 
-    ## ---------------定期処理---------------
-    ##午前2:00に実行されます
-    #@tasks.loop(seconds=60)
-    #async def loop(self):
-    #    await self.bot.wait_until_ready()
-    #    #now = datetime.now().strftime('%H:%M')
-    #    #if now == "02:00":
-    
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def updatelanguager(self, ctx):
+        await self.editembedlanguage()
 
 
 def setup(bot):
