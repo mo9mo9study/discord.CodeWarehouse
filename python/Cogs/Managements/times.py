@@ -140,6 +140,19 @@ class Times(commands.Cog):
         elif which == "other":
             return len(self.OTHER_CHANNEL.text_channels)
 
+    async def times_classification(self, channel):
+        if channel.name[6].encode('utf-8').isalnum():
+            if self.getChannelCount("az") == 50:
+                await channel.edit(category=self.az09_Channel2)
+            else:
+                await channel.edit(category=self.az09_Channel)
+        else:
+            if self.getChannelCount("other") == 50:
+                await channel.edit(category=self.OTHER_CHANNEL2)
+            else:
+                await channel.edit(category=self.OTHER_CHANNEL)
+
+
     # ---------------定期処理---------------
     #午前2:00に実行されます
     @tasks.loop(seconds=59)
@@ -148,31 +161,13 @@ class Times(commands.Cog):
         now = datetime.now().strftime('%H:%M')
         if now == "02:00":
             for channel in self.getActiveChannels():
-                if channel.name[6].encode('utf-8').isalnum():
-                    if self.getChannelCount("az") == 50:
-                        await channel.edit(category=self.az09_Channel2)
-                    else:
-                        await channel.edit(category=self.az09_Channel)
-                else:
-                    if self.getChannelCount("other") == 50:
-                        await channel.edit(category=self.OTHER_CHANNEL2)
-                    else:
-                        await channel.edit(category=self.OTHER_CHANNEL)
+                await self.times_classification(channel)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def times_reset(self, ctx):
         for channel in self.getActiveChannels():
-            if channel.name[6].encode('utf-8').isalnum():
-                if self.getChannelCount("az") == 50:
-                    await channel.edit(category=self.az09_Channel2)
-                else:
-                    await channel.edit(category=self.az09_Channel)
-            else:
-                if self.getChannelCount("other") == 50:
-                    await channel.edit(category=self.OTHER_CHANNEL2)
-                else:
-                    await channel.edit(category=self.OTHER_CHANNEL)
+            await self.times_classification(channel)
 
 def setup(bot):
     return bot.add_cog(Times(bot))
