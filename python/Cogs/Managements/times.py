@@ -14,7 +14,9 @@ class Times(commands.Cog):
         self.ROLE_ID = 801060326627999774  # announceチャンネルでメンションする役職のid
         self.ACTIVE_CATEGORY_ID = 709805664163332147  # activetimesカテゴリーのid
         self.az09_Channel_ID = 673004651871993866  # A-Z:数字の分報カテゴリーid
+        self.az09_Channel_ID2 = 805274560705724436  # A-Z:数字の分報カテゴリーid(2つ目)
         self.OTHER_CHANNEL_ID = 719095356218146879  # その他の分報カテゴリーid
+        self.OTHER_CHANNEL_ID2 = 805275220923121714  # その他の分報カテゴリーid(2つ目)
         self.EMOJIS = ["1⃣","2⃣","3⃣","4⃣","5⃣","6⃣"] #Tutorialメッセージに追加するリアクション一覧
         self.loop.start()
 
@@ -25,7 +27,9 @@ class Times(commands.Cog):
         self.ANNOUNCE = self.GUILD.get_channel(self.ANNOUNCE_ID)
         self.ACTIVE_CATEGORY = self.GUILD.get_channel(self.ACTIVE_CATEGORY_ID)
         self.az09_Channel = self.GUILD.get_channel(self.az09_Channel_ID)
+        self.az09_Channel2 = self.GUILD.get_channel(self.az09_Channel_ID2)
         self.OTHER_CHANNEL = self.GUILD.get_channel(self.OTHER_CHANNEL_ID)
+        self.OTHER_CHANNEL2 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID2)
         self.ROLE = self.GUILD.get_role(self.ROLE_ID)
 
     @commands.Cog.listener()
@@ -130,29 +134,40 @@ class Times(commands.Cog):
         activeChannels = self.ACTIVE_CATEGORY.text_channels
         return activeChannels
 
+    def getChannelCount(self, which):
+        if which == "az":
+            return len(self.az09_Channel.text_channels)
+        elif which == "other":
+            return len(self.OTHER_CHANNEL.text_channels)
+
+    async def times_classification(self, channel):
+        if channel.name[6].encode('utf-8').isalnum():
+            if self.getChannelCount("az") == 50:
+                await channel.edit(category=self.az09_Channel2)
+            else:
+                await channel.edit(category=self.az09_Channel)
+        else:
+            if self.getChannelCount("other") == 50:
+                await channel.edit(category=self.OTHER_CHANNEL2)
+            else:
+                await channel.edit(category=self.OTHER_CHANNEL)
+
+
     # ---------------定期処理---------------
     #午前2:00に実行されます
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=59)
     async def loop(self):
         await self.bot.wait_until_ready()
         now = datetime.now().strftime('%H:%M')
         if now == "02:00":
             for channel in self.getActiveChannels():
-                if channel.name[6].encode('utf-8').isalnum():
-                    await channel.edit(category=self.az09_Channel)
-                else:
-                    await channel.edit(category=self.OTHER_CHANNEL)
+                await self.times_classification(channel)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def times_reset(self, ctx):
         for channel in self.getActiveChannels():
-            if channel.name[6].encode('utf-8').isalnum():
-                print(channel.name[6])
-                await channel.edit(category=self.az09_Channel)
-            else:
-                await channel.edit(category=self.OTHER_CHANNEL)    
-
+            await self.times_classification(channel)
 
 def setup(bot):
     return bot.add_cog(Times(bot))
