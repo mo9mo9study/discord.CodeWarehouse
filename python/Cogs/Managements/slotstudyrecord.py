@@ -34,10 +34,13 @@ class SlotStudyrecord(commands.Cog):
     async def on_message(self, message):
         if not message.author.bot: # BOTじゃなければreturn
             return
+        # 勉強ログのメッセージのみtrue
+        if message.channel.id != self.RECORD_CHANNEL_ID:
+            return 
         if 'Study time' in message.content:
-            result = re.compile(r'.*Study time： (.*)/分').match(message.content)
+            result = re.compile(r'.*Study time  (.*) /分').match(message.content)
             intStudyTime = int(result[1])
-            strName = re.compile(r'-->\[(.*)\].*').match(message.content)
+            strName = re.compile(r'\[.*\] (.*) .*').match(message.content)
             strName = strName[1]
             # 5分以内の記録では動作しないようにするため
             if intStudyTime in self.notOutputNum: 
