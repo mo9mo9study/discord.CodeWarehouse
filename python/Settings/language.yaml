@@ -84,3 +84,7 @@ languages:
     language_name: flutter
     emoji: <:flutter:803170567125336104>
 
+  - role_id: 835488322499379252
+    language_name: unity
+    emoji: <:unity:826327980569395200>
+
