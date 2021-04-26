@@ -32,13 +32,13 @@ class Join_Leave_Log(commands.Cog):
         old_invite_list_uses = list(map(lambda invite: invite.uses, self.old_invite_list))
         new_invite_list_uses = list(map(lambda invite: invite.uses, new_invite_list))
         inviter_mention = await self.uses_if(new_invite_list_uses,old_invite_list_uses,new_invite_list)
-        text = f"{member.name} (id:__{str(member.id)}__) が参加しました。【 招待者：{inviter_mention} 】"
+        text = f"**{member.name} (id:__{str(member.id)}__) が参加しました。【 招待者：{inviter_mention} 】**"
         print(text)
         await self.CHANNEL.send(text)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        text = f"{member.name} (id:__{str(member.id)}__) が離脱しました。"
+        text = f"**{member.name} (id:__{str(member.id)}__) が離脱しました。**"
         print(text)
         await self.CHANNEL.send(text)
 
