@@ -86,8 +86,8 @@ class Times(commands.Cog):
         embed.add_field(name=":two: ", value="アイコン設定をしよう", inline=False)
         embed.add_field(name=":three:", value="ボイスチャット（ラウンジ、もくもく勉強机n）に参加して勉強を開始しよう", inline=False)
         embed.add_field(name=":four:", value="ボイスチャット（ラウンジ、もくもく勉強机n）に5分以上参加してから退席して、勉強記録をつけよう", inline=False)
-        embed.add_field(name=":five:", value="今日の積み上げを確認してみよう「¥result_d」だけのメッセージを送信してみてね", inline=False)
-        embed.add_field(name=":six:", value="昨日の勉強記録は「¥result_d ago」だけのメッセージを送信してみてね", inline=False)
+        embed.add_field(name=":five:", value="今日の積み上げを確認してみよう、チャンネル<#829515424042450984>へ移動しメッセージの「今日の勉強集計」に対応するスタンプを押してみよう", inline=False)
+        embed.add_field(name=":six:", value="今週の積み上げを確認してみよう、チャンネル<#829515424042450984>へ移動しメッセージの「今週の勉強集計」に対応するスタンプを押してみよう", inline=False)
         embed.add_field(name=":tada: **全チュートリアル完了した方へ**",
                         value="お疲れ様です。timesという個人チャンネルについては他の人のtimesチャンネルをみて刺激もらったり、使い方を学んでみよう！", inline=True)
         embed.add_field(name=":beginner: **チュートリアルの進捗管理**",
