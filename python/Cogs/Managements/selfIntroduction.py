@@ -31,9 +31,8 @@ class Self_Introduction(commands.Cog):
         for channel in self.DEBUG_GUILD.text_channels:
             count = await self.get_count(channel)
             if count == 6:
-                member = guild.get_member(186844273029677056)
-                #member = guild.get_member(
-                #    int(channel.name))
+                member = guild.get_member(
+                    int(channel.name))
                 print(f"自己紹介を送信していないユーザー: {member}/{channel}")
                 if member is None:  
                     return
