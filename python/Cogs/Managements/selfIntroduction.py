@@ -25,6 +25,19 @@ class Self_Introduction(commands.Cog):
         self.GUILD = self.bot.get_guild(self.GUILD_ID)
         self.INTRODUCTION_CHANNEL = self.GUILD.get_channel(self.INTRODUCTION_CHANNEL_ID)
         self.DEBUG_GUILD = self.bot.get_guild(self.DEBUG_GUILD_ID)
+        # 全てのパラメータが埋まっている状態で、まだ自己紹介を送信していない場合
+        # 再度確認用のメッセージをDMに送る処理追加
+        guild = self.bot.get_guild(self.GUILD_ID)
+        for channel in self.DEBUG_GUILD.text_channels:
+            count = await self.get_count(channel)
+            if count == 6:
+                member = guild.get_member(186844273029677056)
+                #member = guild.get_member(
+                #    int(channel.name))
+                print(f"自己紹介を送信していないユーザー: {member}/{channel}")
+                if member is None:  
+                    return
+                await self.complete(channel, member.id)
 
 
     # サーバーにメンバーが参加した時
@@ -81,10 +94,10 @@ class Self_Introduction(commands.Cog):
                     # メッセージ数が5の時(これから勉強していきたいことが格納される)
                     elif count == 5:
                         await self.send_message(channel, message.channel, message.content, "これで質問は終了です")
-                        await self.complete(channel, message)
+                        await self.complete(channel, message.author.id)
                         break
                     elif count == 6:
-                        await self.complete(channel, message)
+                        await self.complete(channel, message.author.id)
                         break
                     # メッセージ数が7の時
                     elif count == 7:
@@ -112,7 +125,7 @@ class Self_Introduction(commands.Cog):
                         await messages[1].delete()
                         # 完成した自己紹介を送信する
                         print(message)
-                        await self.complete(channel, message)
+                        await self.complete(channel, message.author.id)
                         break
                     else:
                         print(f"{message.author.id}のメッセージの取得数が想定外です： (取得数: {count})")
@@ -137,37 +150,30 @@ class Self_Introduction(commands.Cog):
         return len(messages)
 
     # ---全ての質問に答えたときに呼び出される---
-    async def complete(self, channel, message):
-        member = self.GUILD.get_member(message.author.id)
+    async def complete(self, channel, member_id):
+        member = self.GUILD.get_member(member_id)
+        print(f"complete: {member}")
+        # dmオブジェクト作成
+        dm = await member.create_dm()
         # 格納されたメッセージをすべて取得
         messages = await channel.history(limit=None).flatten()
         # embedにして整形
         embed = self.add_embed(self.adjust(messages), member)
         # 完成した自己紹介文の最終チェック(修正が可能)
-        embed_message = await message.channel.send(embed=embed)
-        #await message.channel.send(embed=self.strfembed("この内容で自己紹介を登録しますか？\nOKなら👍リアクションを、修正する場合は❌リアクションを押して下さい"))
-        await message.channel.send(embed=self.strfembed("この内容で自己紹介を登録しますか？\nOKなら👍リアクションを、修正する場合は♻️リアクションを押して下さい。\n部分的に修正する場合は一度👍リアクションを押して投稿した後に修正可能になります"))
+        embed_message = await dm.send(embed=embed)
+        await dm.send(embed=self.strfembed("この内容で自己紹介を登録しますか？\nOKなら👍リアクションを、修正する場合は♻️リアクションを押して下さい。\n部分的に修正する場合は一度👍リアクションを押して投稿した後に修正可能になります"))
         # リアクションを追加
         await embed_message.add_reaction("👍")
-        #await embed_message.add_reaction("❌")
         await embed_message.add_reaction("♻️")
         # 押されたemojiを取得
-        #emoji = await self.wait_reaction_add(channel, embed_message, ["👍", "❌"])
         emoji = await self.wait_reaction_add(channel, embed_message, ["👍", "♻️"])
         # 押された絵文字が👍の時(今の内容で登録する)
         if emoji == "👍":
             register_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
             await channel.send(register_msg.id)
-            await message.channel.send(embed=self.strfembed("登録が完了しました\n※登録した自己紹介を修正したい場合は[ ¥predit ]とコマンドを送信してください"))
-        # 押された絵文字が❌の時(内容を変更する)
-        #elif emoji == "❌":
+            await dm.send(embed=self.strfembed("登録が完了しました\n※登録した自己紹介を修正したい場合は[ ¥predit ]とコマンドを送信してください"))
         elif emoji == "♻️":
             await self.selfintroduction_reset(channel, message)
-            #await message.channel.send(embed=self.strfembed("内容を全てリセットします"))
-            ## TextChannelを再度作成し直し、リセットする
-            #await channel.delete()
-            #await self.DEBUG_GUILD.create_text_channel(message.author.id)
-            #await message.channel.send(embed=self.strfembed(self.question1))
 
 
     # 自己紹介を初期化する処理
