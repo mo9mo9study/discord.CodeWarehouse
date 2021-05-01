@@ -14,7 +14,7 @@ class Bump(commands.Cog):
             return
         if message.content == "!d bump":
             await asyncio.sleep(0.5)
-            if message.channel.last_message.author.id == 302050872383242240:
+            if message.channel.last_message.author.id == 302050872383242240 and "表示順をアップしたよ" in message.channel.last_message.embeds[0].description:
                 two_hour_later = datetime.datetime.now() + datetime.timedelta(hours=2)
                 await message.channel.send("次にbump出来る時間は" + two_hour_later.strftime("%H時%M分") + "です")
 
