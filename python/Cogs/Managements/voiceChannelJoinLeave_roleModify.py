@@ -11,10 +11,14 @@ workRoomChatRoleId = 763401369784156211
 loungeChatRoleId = 763400537257148446
 # 「musicbot操作用」表示権限ID
 musicChatRokeId = 710333297598922752
-# 「作業部屋」ID
+# 「作業部屋(記録あり)」ID
 workRoomVoiceChatId = 683864874539024397
+# 「作業部屋(記録なし)」ID
+workRoomNoVoiceChatId = 816459824548151357
 # 「ラウンジ」ID
 loungeVoiceChatId = 603582455756095492
+# 「集中部屋」ID
+loungeNoVoiceChatId = 685652747076632623
 
 class VoiceJoin_Role(commands.Cog):
 
@@ -39,10 +43,12 @@ class VoiceJoin_Role(commands.Cog):
                 elif after.channel.id == loungeVoiceChatId:
                     print(4)
                     await self.AddRole(member, musicChatRokeId, loungeChatRoleId)
+                elif after.channel.id in (workRoomNoVoiceChatId, loungeNoVoiceChatId):
+                    await self.AddRole(member, musicChatRokeId)
             if before.channel is not None:                        #vc退席時
                 print("before: ",before.channel.name)
                 print(5)
-                if before.channel.id in (workRoomVoiceChatId, loungeVoiceChatId):
+                if before.channel.id in (workRoomVoiceChatId, loungeVoiceChatId, workRoomNoVoiceChatId, loungeNoVoiceChatId):
                     await self.RemoveRole(member, musicChatRokeId, workRoomChatRoleId, loungeChatRoleId)
 
     async def AddRole(self,member,*args):
