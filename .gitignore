@@ -1,6 +1,4 @@
 .env
-node_modules
-*/venv/
-.python-version
+venv/
 *__pycache__*
 .python-version
