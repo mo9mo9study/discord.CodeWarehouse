@@ -20,13 +20,14 @@ class MemberstableReset(commands.Cog):
     #       以下の関数は:と:の間の文字列を削除する処理
     def remove_emoji(self, src_str):
         decode_str = emojis.decode(src_str)
-        return re.sub(":.*:", "" ,decode_str)
+        return re.sub(":.*:", "" , decode_str)
 
-    def memberstable_reset(self):
-        Studymembers.__table__.drop(self.engine)
-        Studymembers.__table__.create(self.engine)
+    async def memberstable_reset(self):
         session = Studymembers.session()
+        session.query(Studymembers).delete()
         members = self.bot.get_guild(self.GUILD_ID).members
+        user_count = sum(1 for member in members if not member.bot)
+        print(f"[INFO]: user_count: {user_count} /users")
         members_human = []
         for i in members:
             if not i.bot:
@@ -43,14 +44,17 @@ class MemberstableReset(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def admin_memberstable_reset(self, ctx):
-        self.memberstable_reset()
+    async def t_admin_memberstable_reset(self, ctx):
+        await self.memberstable_reset()
 
     # ---------------定期処理---------------
     # 午前4:00に実行されます
     @tasks.loop(seconds=59)
     async def loop(self):
         await self.bot.wait_until_ready()
+        ## 課題
+        ## DBの在籍メンバー数と今Discordから取得したギルドメンバーの数が一緒か
+        ## 一緒じゃない場合のみ以下の処理を動かすようにする 
         now = datetime.now().strftime('%H:%M')
         if now == "04:00":
             self.memberstable_reset()
