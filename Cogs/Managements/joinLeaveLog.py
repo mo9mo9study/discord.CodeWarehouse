@@ -5,6 +5,7 @@ import inspect
 from sqlalchemy import Column, String, Integer, DateTime, Boolean
 import emojis
 import re
+import os
 
 from mo9mo9db.dbtables import Studymembers
 from mo9mo9db.dbsession import get_db_engine
@@ -16,6 +17,7 @@ class Join_Leave_Log(commands.Cog):
         self.GUILD_ID = 603582455756095488 # mo9mo9サーバーID
         self.CHANNEL_ID = 708303469882114058 #参加・離脱ログ用チャンネルid
         self.old_invite_list = []
+        self.fname = os.path.basename(__file__)
 
     def remove_emoji(self, src_str):
         decode_str = emojis.decode(src_str)
@@ -45,15 +47,29 @@ class Join_Leave_Log(commands.Cog):
         text = f"**{member.name} (id:__{str(member.id)}__) が参加しました。【 招待者：{inviter_mention} 】**"
         # dbにメンバー情報書き込み
         session = Studymembers.session()
-        add_date = Studymembers(
-            guild_id = member.guild.id,
-            member_id = member.id,
-            member_name = self.remove_emoji(member.display_name),
-            joined_dt = member.joined_at,
-            enrollment = True
-        )
-        Studymembers.insert(add_date)
-        print(text)
+        check_exist = session.query(session.query(Studymembers).filter(
+            Studymembers.member_id==str(member.id)
+            ).exists()).scalar()
+        if check_exist: # 既に参加したユーザーの情報が存在する場合は情報を最新かするために削除
+            update_date = session.query(Studymembers).filter(
+                Studymembers.guild_id==str(member.guild.id),
+                Studymembers.member_id==str(member.id)
+                ).scalar()
+            update_date.member_name = self.remove_emoji(member.display_name)
+            update_date.joined_dt = member.joined_at
+            update_date.enrollment = True
+            session.commit()
+            print(f"({self.fname}):[INFO]: {member.name} (id:__{str(member.id)}__) の昔のデータが存在したので更新しました")
+        else:
+            add_date = Studymembers(
+                guild_id = member.guild.id,
+                member_id = member.id,
+                member_name = self.remove_emoji(member.display_name),
+                joined_dt = member.joined_at,
+                enrollment = True
+            )
+            Studymembers.insert(add_date)
+        print(f"({self.fname}):[INFO]: {text}")
         await self.CHANNEL.send(text)
 
     @commands.Cog.listener()
@@ -61,10 +77,10 @@ class Join_Leave_Log(commands.Cog):
         text = f"**{member.name} (id:__{str(member.id)}__) が離脱しました。**"
         # dbからメンバー情報を削除
         session = Studymembers.session()
-        delete_date = session.query(Studymembers).filter(Studymembers.member_id==member.id).first()
-        session.delete(delete_date)
+        leave_date = session.query(Studymembers).filter(Studymembers.member_id==str(member.id)).first()
+        leave_date.enrollment = False
         session.commit()
-        print(text)
+        print(f"({self.fname}):[INFO]: {text}")
         await self.CHANNEL.send(text)
 
 
