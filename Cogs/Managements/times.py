@@ -75,7 +75,7 @@ class Times(commands.Cog):
 
         embedMsg = await channel.send(embed = self.createEmbed()) #embedメッセージを送信
         await self.addReaction(embedMsg) #Tutorialメッセージにリアクションを付ける
-        count = self.getChannelCount() #timesチャンネルの総数を取得
+        count = self.getAllTimesCount() #timesチャンネルの総数を取得
         await self.ANNOUNCE.send(f"{self.ROLE.mention}\n",embed=self.createAnnounce()) #announceチャンネルにtimesチャンネル総数を送信
 
     #---channelCreateSendメソッドからのみ呼び出される---
@@ -102,7 +102,7 @@ class Times(commands.Cog):
 
     #---channelCreateSendメソッドからのみ呼び出される---
     #timesチャンネルの合計を取得する
-    def getChannelCount(self):
+    def getAllTimesCount(self):
         timesChannels = list(filter(lambda channel: channel.name[0:6] == "times_", self.GUILD.text_channels))
         count = len(timesChannels)
         return count
@@ -134,7 +134,7 @@ class Times(commands.Cog):
         activeChannels = self.ACTIVE_CATEGORY.text_channels
         return activeChannels
 
-    def getChannelCount(self, which):
+    def getDivideTimesCount(self, which):
         if which == "az":
             return len(self.az09_Channel.text_channels)
         elif which == "other":
@@ -142,12 +142,12 @@ class Times(commands.Cog):
 
     async def times_classification(self, channel):
         if channel.name[6].encode('utf-8').isalnum():
-            if self.getChannelCount("az") == 50:
+            if self.getDivideTimesCount("az") == 50:
                 await channel.edit(category=self.az09_Channel2)
             else:
                 await channel.edit(category=self.az09_Channel)
         else:
-            if self.getChannelCount("other") == 50:
+            if self.getDivideTimesCount("other") == 50:
                 await channel.edit(category=self.OTHER_CHANNEL2)
             else:
                 await channel.edit(category=self.OTHER_CHANNEL)
@@ -171,4 +171,3 @@ class Times(commands.Cog):
 
 def setup(bot):
     return bot.add_cog(Times(bot))
-
