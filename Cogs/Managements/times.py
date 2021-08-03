@@ -90,12 +90,10 @@ class Times(commands.Cog):
         # embedメッセージを送信
         embedMsg = await channel.send(embed=self.createEmbed())
         await self.addReaction(embedMsg)  # Tutorialメッセージにリアクションを付ける
-        # announceチャンネルにtimesチャンネル総数を送信
-        await self.ANNOUNCE.send(f"{self.ROLE.mention}\n",
-                                 embed=self.createAnnounce())
 
     # ---channelCreateSendメソッドからのみ呼び出される---
     # Tutorialメッセージを作成
+
     def createEmbed(self):
         embed = discord.Embed(title="チュートリアル")
         embed.add_field(name=":one:", value="自己紹介しよう", inline=False)
@@ -129,41 +127,6 @@ class Times(commands.Cog):
     async def addReaction(self, message):
         for emoji in self.EMOJIS:
             await message.add_reaction(emoji)
-
-    # ---channelCreateSendメソッドからのみ呼び出される---
-    # timesチャンネルの合計を取得する
-    def getAllTimesCount(self):
-        timesChannels = list(
-            filter(lambda channel: channel.name[0:6] == "times_",
-                   self.GUILD.text_channels))
-        count = len(timesChannels)
-        return count
-
-    # ---channelCreateSendメソッドからのみ呼び出される---
-    # announce用のembedを作成
-    def createAnnounce(self):
-        az09, other = self.getChannelTotalNumber(self.az09_Channel,
-                                                 self.OTHER_CHANNEL)
-        embed = discord.Embed(title=f"times_Channel総数： {az09+other}個")
-        embed.add_field(name=f"{self.az09_Channel.name}の総数：",
-                        value=f"{az09}個", inline=True)
-        embed.add_field(name=f"{self.OTHER_CHANNEL.name}の総数：",
-                        value=f"{other}個", inline=True)
-        return embed
-
-    # ---createAnnounceメソッドからのみ呼び出される---
-    # ---各timesの総数を取得---
-    def getChannelTotalNumber(self, az09channel, otherchannel):
-        az09 = 0
-        other = 0
-        for channel in self.ACTIVE_CATEGORY.text_channels:
-            if channel.name[6].encode('utf-8').isalnum():
-                az09 = az09 + 1  # 処理速度を上げるために自己代入の省略をしていません
-            else:
-                other = other + 1
-        az09 = az09 + len(az09channel.text_channels)
-        other = other + len(otherchannel.text_channels)
-        return az09, other
 
     def getActiveChannels(self):
         activeChannels = self.ACTIVE_CATEGORY.text_channels
