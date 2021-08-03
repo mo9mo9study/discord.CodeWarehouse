@@ -1,12 +1,11 @@
-from discord.ext import commands,tasks
+from discord.ext import commands, tasks
 import discord
-import asyncio
 from datetime import datetime
-import re
+
 
 class Times(commands.Cog):
 
-    def __init__(self,bot):
+    def __init__(self, bot):
         self.bot = bot
         self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのid
         self.CHANNEL_ID = 615185771565023244  # 自己紹介チャンネルのid
@@ -15,9 +14,18 @@ class Times(commands.Cog):
         self.ACTIVE_CATEGORY_ID = 709805664163332147  # activetimesカテゴリーのid
         self.az09_Channel_ID = 673004651871993866  # A-Z:数字の分報カテゴリーid
         self.az09_Channel_ID2 = 805274560705724436  # A-Z:数字の分報カテゴリーid(2つ目)
+        self.az09_Channel_ID3 = 872115965612158987  # A-Z:数字の分報カテゴリーid(3つ目)
+        self.az09_Channel_ID4 = 872116088819822632  # A-Z:数字の分報カテゴリーid(4つ目)
+        self.az09_Channel_ID5 = 872130055894077461  # A-Z:数字の分報カテゴリーid(5つ目)
+        self.az09_Channel_ID6 = 872130106842284042  # A-Z:数字の分報カテゴリーid(6つ目)
         self.OTHER_CHANNEL_ID = 719095356218146879  # その他の分報カテゴリーid
         self.OTHER_CHANNEL_ID2 = 805275220923121714  # その他の分報カテゴリーid(2つ目)
-        self.EMOJIS = ["1⃣","2⃣","3⃣","4⃣","5⃣","6⃣"] #Tutorialメッセージに追加するリアクション一覧
+        self.OTHER_CHANNEL_ID3 = 872116225537343558  # その他の分報カテゴリーid(3つ目)
+        self.OTHER_CHANNEL_ID4 = 872116264066248765  # その他の分報カテゴリーid(4つ目)
+        self.OTHER_CHANNEL_ID5 = 872130350518767717  # その他の分報カテゴリーid(5つ目)
+        self.OTHER_CHANNEL_ID6 = 872130381443375124  # その他の分報カテゴリーid(6つ目)
+        # Tutorialメッセージに追加するリアクション一覧
+        self.EMOJIS = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         self.loop.start()
 
     @commands.Cog.listener()
@@ -28,8 +36,12 @@ class Times(commands.Cog):
         self.ACTIVE_CATEGORY = self.GUILD.get_channel(self.ACTIVE_CATEGORY_ID)
         self.az09_Channel = self.GUILD.get_channel(self.az09_Channel_ID)
         self.az09_Channel2 = self.GUILD.get_channel(self.az09_Channel_ID2)
+        self.az09_Channel3 = self.GUILD.get_channel(self.az09_Channel_ID3)
+        self.az09_Channel4 = self.GUILD.get_channel(self.az09_Channel_ID4)
         self.OTHER_CHANNEL = self.GUILD.get_channel(self.OTHER_CHANNEL_ID)
         self.OTHER_CHANNEL2 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID2)
+        self.OTHER_CHANNEL3 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID3)
+        self.OTHER_CHANNEL4 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID4)
         self.ROLE = self.GUILD.get_role(self.ROLE_ID)
 
     @commands.Cog.listener()
@@ -42,11 +54,12 @@ class Times(commands.Cog):
         # ---------------times作成処理---------------
         elif message.channel.id == self.CHANNEL_ID:
             if message.author.bot:
-                user_id = message.embeds[0].footer.text #footerのidを取得
+                user_id = message.embeds[0].footer.text  # footerのidを取得
                 user_id = int(user_id)
                 for channel in self.GUILD.text_channels:
                     if channel.topic == str(user_id):
-                        print(f"(userid: {str(user_id)})timesチャンネルが既に存在するので、作成しませんでした。")
+                        print(
+                            f"(userid: {str(user_id)})timesチャンネルが既に存在します。")
                         break
                 else:
                     await self.channelCreateSend(self.getMember(user_id))
@@ -55,14 +68,15 @@ class Times(commands.Cog):
         elif message.channel.name[0:6] == "times_":
             await message.channel.edit(category=self.ACTIVE_CATEGORY)
 
-    #ユーザーidからメンバーオブジェクトを取得
-    def getMember(self,user_id):
+    # ユーザーidからメンバーオブジェクトを取得
+    def getMember(self, user_id):
         member = self.GUILD.get_member(user_id)
         return member
 
-    #timesチャンネルがなかった時に呼び出される
+    # timesチャンネルがなかった時に呼び出される
     async def channelCreateSend(self, member):
-        channel = await self.ACTIVE_CATEGORY.create_text_channel(name=f"times_{member.name}")
+        channel = await self.ACTIVE_CATEGORY.create_text_channel(
+            name=f"times_{member.name}")
         await channel.edit(topic=member.id)
 
         await channel.send(f"""
@@ -73,61 +87,82 @@ class Times(commands.Cog):
  　参考資料：http://c16e.com/1511101558/
 """)
 
-        embedMsg = await channel.send(embed = self.createEmbed()) #embedメッセージを送信
-        await self.addReaction(embedMsg) #Tutorialメッセージにリアクションを付ける
-        count = self.getAllTimesCount() #timesチャンネルの総数を取得
-        await self.ANNOUNCE.send(f"{self.ROLE.mention}\n",embed=self.createAnnounce()) #announceチャンネルにtimesチャンネル総数を送信
+        # embedメッセージを送信
+        embedMsg = await channel.send(embed=self.createEmbed())
+        await self.addReaction(embedMsg)  # Tutorialメッセージにリアクションを付ける
+        # announceチャンネルにtimesチャンネル総数を送信
+        await self.ANNOUNCE.send(f"{self.ROLE.mention}\n",
+                                 embed=self.createAnnounce())
 
-    #---channelCreateSendメソッドからのみ呼び出される---
-    #Tutorialメッセージを作成
+    # ---channelCreateSendメソッドからのみ呼び出される---
+    # Tutorialメッセージを作成
     def createEmbed(self):
         embed = discord.Embed(title="チュートリアル")
         embed.add_field(name=":one:", value="自己紹介しよう", inline=False)
         embed.add_field(name=":two: ", value="アイコン設定をしよう", inline=False)
-        embed.add_field(name=":three:", value="ボイスチャット（ラウンジ、もくもく勉強机n）に参加して勉強を開始しよう", inline=False)
-        embed.add_field(name=":four:", value="ボイスチャット（ラウンジ、もくもく勉強机n）に5分以上参加してから退席して、勉強記録をつけよう", inline=False)
-        embed.add_field(name=":five:", value="今日の積み上げを確認してみよう、チャンネル<#829515424042450984>へ移動しメッセージの「今日の勉強集計」に対応するスタンプを押してみよう", inline=False)
-        embed.add_field(name=":six:", value="今週の積み上げを確認してみよう、チャンネル<#829515424042450984>へ移動しメッセージの「今週の勉強集計」に対応するスタンプを押してみよう", inline=False)
+        embed.add_field(
+            name=":three:",
+            value="ボイスチャット（ラウンジ、もくもく勉強机n）に参加して勉強を開始しよう",
+            inline=False)
+        embed.add_field(
+            name=":four:",
+            value="ボイスチャット（ラウンジ、もくもく勉強机n）に5分以上参加してから退席して、勉強記録をつけよう",
+            inline=False)
+        embed.add_field(
+            name=":five:",
+            value="今日の積み上げを確認してみよう、チャンネル<#829515424042450984>へ移動しメッセージの「今日の勉強集計」に対応するスタンプを押してみよう",  # noqa: E501
+            inline=False)
+        embed.add_field(
+            name=":six:",
+            value="今週の積み上げを確認してみよう、チャンネル<#829515424042450984>へ移動しメッセージの「今週の勉強集計」に対応するスタンプを押してみよう",  # noqa: E501
+            inline=False)
         embed.add_field(name=":tada: **全チュートリアル完了した方へ**",
-                        value="お疲れ様です。timesという個人チャンネルについては他の人のtimesチャンネルをみて刺激もらったり、使い方を学んでみよう！", inline=True)
+                        value="お疲れ様です。timesという個人チャンネルについては他の人のtimesチャンネルをみて刺激もらったり、使い方を学んでみよう！",  # noqa: E501
+                        inline=True)
         embed.add_field(name=":beginner: **チュートリアルの進捗管理**",
-                        value="このメッセージの下にチュートリアルの数だけ対応するスタンプを付与していますので、クリアしたらスタンプを押して進捗を管理してみてください。", inline=True)
+                        value="このメッセージの下にチュートリアルの数だけ対応するスタンプを付与していますので、クリアしたらスタンプを押して進捗を管理してみてください。",  # noqa: E501
+                        inline=True)
         return embed
 
-    #---channelCreateSendメソッドからのみ呼び出される---
-    #Tutorialメッセージにリアクションを付ける
-    async def addReaction(self,message):
+    # ---channelCreateSendメソッドからのみ呼び出される---
+    # Tutorialメッセージにリアクションを付ける
+    async def addReaction(self, message):
         for emoji in self.EMOJIS:
             await message.add_reaction(emoji)
 
-    #---channelCreateSendメソッドからのみ呼び出される---
-    #timesチャンネルの合計を取得する
+    # ---channelCreateSendメソッドからのみ呼び出される---
+    # timesチャンネルの合計を取得する
     def getAllTimesCount(self):
-        timesChannels = list(filter(lambda channel: channel.name[0:6] == "times_", self.GUILD.text_channels))
+        timesChannels = list(
+            filter(lambda channel: channel.name[0:6] == "times_",
+                   self.GUILD.text_channels))
         count = len(timesChannels)
         return count
 
-    #---channelCreateSendメソッドからのみ呼び出される---
-    #announce用のembedを作成
+    # ---channelCreateSendメソッドからのみ呼び出される---
+    # announce用のembedを作成
     def createAnnounce(self):
-        az09, other = self.getChannelTotalNumber()
+        az09, other = self.getChannelTotalNumber(self.az09_Channel,
+                                                 self.OTHER_CHANNEL)
         embed = discord.Embed(title=f"times_Channel総数： {az09+other}個")
-        embed.add_field(name=f"{self.az09_Channel.name}の総数：", value=f"{az09}個", inline=True)
-        embed.add_field(name=f"{self.OTHER_CHANNEL.name}の総数：", value=f"{other}個", inline=True)
+        embed.add_field(name=f"{self.az09_Channel.name}の総数：",
+                        value=f"{az09}個", inline=True)
+        embed.add_field(name=f"{self.OTHER_CHANNEL.name}の総数：",
+                        value=f"{other}個", inline=True)
         return embed
 
-    #---createAnnounceメソッドからのみ呼び出される---
-    #---各timesの総数を取得---
-    def getChannelTotalNumber(self):
+    # ---createAnnounceメソッドからのみ呼び出される---
+    # ---各timesの総数を取得---
+    def getChannelTotalNumber(self, az09channel, otherchannel):
         az09 = 0
         other = 0
         for channel in self.ACTIVE_CATEGORY.text_channels:
             if channel.name[6].encode('utf-8').isalnum():
-                az09 = az09 +  1 #処理速度を上げるために自己代入の省略をしていません
+                az09 = az09 + 1  # 処理速度を上げるために自己代入の省略をしていません
             else:
                 other = other + 1
-        az09 = az09 + len(self.az09_Channel.text_channels)
-        other = other + len(self.OTHER_CHANNEL.text_channels)
+        az09 = az09 + len(az09channel.text_channels)
+        other = other + len(otherchannel.text_channels)
         return az09, other
 
     def getActiveChannels(self):
@@ -137,24 +172,56 @@ class Times(commands.Cog):
     def getDivideTimesCount(self, which):
         if which == "az":
             return len(self.az09_Channel.text_channels)
+        elif which == "az2":
+            return len(self.az09_Channel2.text_channels)
+        elif which == "az3":
+            return len(self.az09_Channel3.text_channels)
+        elif which == "az4":
+            return len(self.az09_Channel4.text_channels)
+        elif which == "az5":
+            return len(self.az09_Channel5.text_channels)
         elif which == "other":
             return len(self.OTHER_CHANNEL.text_channels)
+        elif which == "other2":
+            return len(self.OTHER_CHANNEL2.text_channels)
+        elif which == "other3":
+            return len(self.OTHER_CHANNEL3.text_channels)
+        elif which == "other4":
+            return len(self.OTHER_CHANNEL4.text_channels)
+        elif which == "other5":
+            return len(self.OTHER_CHANNEL5.text_channels)
 
     async def times_classification(self, channel):
         if channel.name[6].encode('utf-8').isalnum():
-            if self.getDivideTimesCount("az") == 50:
-                await channel.edit(category=self.az09_Channel2)
-            else:
+            if self.getDivideTimesCount("az") < 50:
                 await channel.edit(category=self.az09_Channel)
-        else:
-            if self.getDivideTimesCount("other") == 50:
-                await channel.edit(category=self.OTHER_CHANNEL2)
+            elif self.getDivideTimesCount("az2") < 50:
+                await channel.edit(category=self.az09_Channel2)
+            elif self.getDivideTimesCount("az3") < 50:
+                await channel.edit(category=self.az09_Channel3)
+            elif self.getDivideTimesCount("az4") < 50:
+                await channel.edit(category=self.az09_Channel4)
+            elif self.getDivideTimesCount("az5") < 50:
+                await channel.edit(category=self.az09_Channel5)
             else:
+                await channel.edit(category=self.az09_Channel6)
+        else:
+            if self.getDivideTimesCount("other") < 50:
                 await channel.edit(category=self.OTHER_CHANNEL)
-
+            elif self.getDivideTimesCount("other2") < 50:
+                await channel.edit(category=self.OTHER_CHANNEL2)
+            elif self.getDivideTimesCount("other3") < 50:
+                await channel.edit(category=self.OTHER_CHANNEL3)
+            elif self.getDivideTimesCount("other4") < 50:
+                await channel.edit(category=self.OTHER_CHANNEL4)
+            elif self.getDivideTimesCount("other5") < 50:
+                await channel.edit(category=self.OTHER_CHANNEL5)
+            else:
+                await channel.edit(category=self.OTHER_CHANNEL6)
 
     # ---------------定期処理---------------
-    #午前2:00に実行されます
+    # 午前2:00に実行されます
+
     @tasks.loop(seconds=59)
     async def loop(self):
         await self.bot.wait_until_ready()
@@ -165,9 +232,10 @@ class Times(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def times_reset(self, ctx):
+    async def ttimes_reset(self, ctx):
         for channel in self.getActiveChannels():
             await self.times_classification(channel)
+
 
 def setup(bot):
     return bot.add_cog(Times(bot))
