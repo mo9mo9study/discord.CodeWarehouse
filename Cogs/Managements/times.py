@@ -1,4 +1,5 @@
 import asyncio
+import textwrap
 from datetime import datetime
 
 import discord
@@ -27,6 +28,7 @@ class Times(commands.Cog):
         self.OTHER_CHANNEL_ID5 = 872130350518767717  # その他の分報カテゴリーid(5つ目)
         self.OTHER_CHANNEL_ID6 = 872130381443375124  # その他の分報カテゴリーid(6つ目)
         self.TIMES_CREATE_ID = 872257840528646144  # timesを作成チャンネルid
+        self.VIEW_TIMES_ID = 792369191843135488  # チャンネル[自分のtimesへ移動]
         # Tutorialメッセージに追加するリアクション一覧
         self.EMOJIS = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         self.second = 5
@@ -51,6 +53,7 @@ class Times(commands.Cog):
         self.OTHER_CHANNEL5 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID5)
         self.OTHER_CHANNEL6 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID6)
         self.TIMES_CREATE = self.GUILD.get_channel(self.TIMES_CREATE_ID)
+        self.VIEW_TIMES = self.GUILD.get_channel(self.VIEW_TIMES_ID)
         self.ROLE = self.GUILD.get_role(self.ROLE_ID)
         # ユーザーが自己紹介してなくても任意でtimesを作成できる処理を追加
         await self.TIMES_CREATE.purge()
@@ -92,16 +95,18 @@ class Times(commands.Cog):
             user_id = int(payload.member.id)
             for channel in self.GUILD.text_channels:
                 if channel.topic == str(user_id):
-                    msg = await self.TIMES_CREATE.send(
-                        "あなたのtimesチャンネルは既に存在します")
+                    msg = await self.TIMES_CREATE.send(textwrap.dedent(f"""\
+                        あなたのtimesチャンネルは既に存在します)
+                        {self.VIEW_TIMES.mention} でtimesに移動しよう"""))
                     await self.time_sleep(msg)
                     await self.message.remove_reaction(payload.emoji,
                                                        payload.member)
                     break
             else:
                 await self.channelCreateSend(self.getMember(user_id))
-                msg = await self.TIMES_CREATE.send(
-                    "あなたのtimesチャンネルを作成しました")
+                msg = await self.TIMES_CREATE.send(textwrap.dedent(f"""\
+                    あなたのtimesチャンネルを作成しました
+                    {self.VIEW_TIMES.mention} でtimesに移動しよう"""))
                 await self.time_sleep(msg)
                 await self.message.remove_reaction(payload.emoji,
                                                    payload.member)
