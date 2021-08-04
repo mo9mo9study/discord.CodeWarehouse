@@ -1,6 +1,8 @@
-from discord.ext import commands, tasks
-import discord
+import asyncio
 from datetime import datetime
+
+import discord
+from discord.ext import commands, tasks
 
 
 class Times(commands.Cog):
@@ -24,8 +26,10 @@ class Times(commands.Cog):
         self.OTHER_CHANNEL_ID4 = 872116264066248765  # その他の分報カテゴリーid(4つ目)
         self.OTHER_CHANNEL_ID5 = 872130350518767717  # その他の分報カテゴリーid(5つ目)
         self.OTHER_CHANNEL_ID6 = 872130381443375124  # その他の分報カテゴリーid(6つ目)
+        self.TIMES_CREATE_ID = 872257840528646144  # timesを作成チャンネルid
         # Tutorialメッセージに追加するリアクション一覧
         self.EMOJIS = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
+        self.second = 5
         self.loop.start()
 
     @commands.Cog.listener()
@@ -46,7 +50,16 @@ class Times(commands.Cog):
         self.OTHER_CHANNEL4 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID4)
         self.OTHER_CHANNEL5 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID5)
         self.OTHER_CHANNEL6 = self.GUILD.get_channel(self.OTHER_CHANNEL_ID6)
+        self.TIMES_CREATE = self.GUILD.get_channel(self.TIMES_CREATE_ID)
         self.ROLE = self.GUILD.get_role(self.ROLE_ID)
+        # ユーザーが自己紹介してなくても任意でtimesを作成できる処理を追加
+        await self.TIMES_CREATE.purge()
+        embed = discord.Embed(title="あなたのtimesを作成します",
+                              description="※ 既に存在する場合は作成されません")
+        embed.add_field(name=" 👇 使い方", value="（超簡単）このメッセージにリアクションをするだけ‼️ ")
+        self.message = await self.TIMES_CREATE.send(embed=embed)
+        self.message_id = self.message.id
+        await self.message.add_reaction("🛎️")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -67,10 +80,35 @@ class Times(commands.Cog):
                         break
                 else:
                     await self.channelCreateSend(self.getMember(user_id))
-
         # ---------------active_times処理---------------
         elif message.channel.name[0:6] == "times_":
             await message.channel.edit(category=self.ACTIVE_CATEGORY)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        if payload.member.bot:
+            return
+        if payload.message_id == self.message_id:
+            user_id = int(payload.member.id)
+            for channel in self.GUILD.text_channels:
+                if channel.topic == str(user_id):
+                    msg = await self.TIMES_CREATE.send(
+                        "あなたのtimesチャンネルは既に存在します")
+                    await self.time_sleep(msg)
+                    await self.message.remove_reaction(payload.emoji,
+                                                       payload.member)
+                    break
+            else:
+                await self.channelCreateSend(self.getMember(user_id))
+                msg = await self.TIMES_CREATE.send(
+                    "あなたのtimesチャンネルを作成しました")
+                await self.time_sleep(msg)
+                await self.message.remove_reaction(payload.emoji,
+                                                   payload.member)
+
+    async def time_sleep(self, msg):
+        await asyncio.sleep(self.second)
+        await msg.delete()
 
     # ユーザーidからメンバーオブジェクトを取得
     def getMember(self, user_id):
@@ -97,7 +135,6 @@ class Times(commands.Cog):
 
     # ---channelCreateSendメソッドからのみ呼び出される---
     # Tutorialメッセージを作成
-
     def createEmbed(self):
         embed = discord.Embed(title="チュートリアル")
         embed.add_field(name=":one:", value="自己紹介しよう", inline=False)
