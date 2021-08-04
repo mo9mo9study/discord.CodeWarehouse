@@ -1,6 +1,8 @@
+import asyncio
+import textwrap
+
 from discord.ext import commands
 import discord
-import asyncio
 
 
 class ViewTimesChannel(commands.Cog):
@@ -8,16 +10,17 @@ class ViewTimesChannel(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.guild_id = 603582455756095488
-        self.channel_id = 792369191843135488  # 下のメッセージがあるchannelのid
+        self.channel_id = 792369191843135488  # チャンネル[自分のtimesへ移動]
+        self.CREATE_TIMES_ID = 872257840528646144  # チャンネル[timesを作成]
         self.second = 5
 
     # 移動用のembedメッセージ
     @commands.Cog.listener()
     async def on_ready(self):
-        self.channel = self.bot.get_guild(
-            self.guild_id).get_channel(self.channel_id)
+        self.guild = self.bot.get_guild(self.guild_id)
+        self.channel = self.guild.get_channel(self.channel_id)
+        self.CREATE_TIMES = self.guild.get_channel(self.CREATE_TIMES_ID)
         await self.channel.purge()
-
         embed = discord.Embed(title="各自timesへの移動を簡単にします",
                               description="- あなたのtimesへのリンク(移動手段)を5秒表示します")
         embed.add_field(name=" 👇 使い方", value="（超簡単）このメッセージにリアクションをするだけ‼️ ")
@@ -41,7 +44,9 @@ class ViewTimesChannel(commands.Cog):
                                                      payload.member)
                     break
             else:
-                msg = await self.channel.send("timesチャンネルが見つかりませんでした。")
+                msg = await self.channel.send(textwrap.dedent(f"""\
+                    timesチャンネルが見つかりませんでした。
+                    {self.CREATE_TIMES.mention} でtimesを作成してください。"""))
                 await self.time_sleep(msg)
                 await select_msg.remove_reaction(payload.emoji, payload.member)
 
