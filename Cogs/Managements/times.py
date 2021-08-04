@@ -241,7 +241,7 @@ class Times(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def ttimes_reset(self, ctx):
+    async def times_reset(self, ctx):
         for channel in self.getActiveChannels():
             await self.times_classification(channel)
 
