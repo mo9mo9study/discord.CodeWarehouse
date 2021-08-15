@@ -166,7 +166,6 @@ class Self_Introduction(commands.Cog):
     # channelとdmにメッセージを送信するメソッド
     async def send_message(self, channel, dm, msgcontent, content):
         await channel.send(msgcontent)
-        # await message.channel.send(embed=self.strfembed(content))
         await dm.send(embed=self.strfembed(content))
 
     # ---on_messageイベント内でのみ呼び出される---
@@ -209,13 +208,12 @@ OKなら👍リアクションを、修正する場合は♻️リアクショ�
             await self.selfintroduction_reset(channel, dm)
 
     # 自己紹介を初期化する処理
-
-    async def selfintroduction_reset(self, channel, message):
-        await message.channel.send(embed=self.strfembed("内容を全てリセットします"))
+    async def selfintroduction_reset(self, channel, dm):
+        await dm.send(embed=self.strfembed("内容を全てリセットします"))
         # TextChannelを再度作成し直し、リセットする
         await channel.delete()
-        await self.DEBUG_GUILD.create_text_channel(message.author.id)
-        await message.channel.send(embed=self.strfembed(self.question1))
+        await self.DEBUG_GUILD.create_text_channel(dm.me.id)
+        await dm.send(embed=self.strfembed(self.question1))
 
     # ---completeメソッド内でのみ呼び出される---
     # Embedオブジェクトを作成するメソッド
@@ -304,10 +302,11 @@ joined: {str(member.joined_at.strftime('%Y-%m-%d'))}""",
 
     @commands.command()
     async def predit(self, message):
+        if not isinstance(message.channel, discord.DMChannel):
+            return
         member = self.GUILD.get_member(message.author.id)
         dm = await message.author.create_dm()
         for channel in self.DEBUG_GUILD.text_channels:
-            print(f"channel.id: {channel.id}")
             if channel.name == str(message.author.id):
                 # channelを見つけたらそのチャンネル内の合計メッセージ数を取得する
                 messages = await channel.history(limit=None).flatten()
@@ -324,45 +323,50 @@ joined: {str(member.joined_at.strftime('%Y-%m-%d'))}""",
                 for emoji in emoji_number:
                     await embed_message.add_reaction(emoji)
                 await embed_message.add_reaction("♻️")
+                emoji_number.append("♻️")
                 emoji = await self.wait_reaction_add(channel,
                                                      embed_message,
                                                      emoji_number)
                 pr_messages = self.messages_id(messages)
                 if emoji == "1⃣":
+                    print(f"[INFO]: {member.name}: {emoji} のリアクションが押されました")
                     await self.send_message(channel,
                                             dm,
                                             pr_messages[0],
                                             self.question1)
                     break
                 if emoji == "2⃣":
+                    print(f"[INFO]: {member.name}: {emoji} のリアクションが押されました")
                     await self.send_message(channel,
                                             dm,
                                             pr_messages[2],
                                             self.question3)
                     break
                 if emoji == "3⃣":
+                    print(f"[INFO]: {member.name}: {emoji} のリアクションが押されました")
                     await self.send_message(channel,
                                             dm,
                                             pr_messages[3],
                                             self.question4)
                     break
                 if emoji == "4⃣":
+                    print(f"[INFO]: {member.name}: {emoji} のリアクションが押されました")
                     await self.send_message(channel,
                                             dm,
                                             pr_messages[4],
                                             self.question5)
                     break
                 if emoji == "5⃣":
+                    print(f"[INFO]: {member.name}: {emoji} のリアクションが押されました")
                     await self.send_message(channel,
                                             dm, pr_messages[5],
                                             self.question6)
                     break
                 if emoji == "♻️":
-                    await self.selfintroduction_reset(channel, message)
+                    print(f"[INFO]: {member.name}: {emoji} のリアクションが押されました")
+                    await self.selfintroduction_reset(channel, message.channel)
                     break
-
         else:
-
             await self.DEBUG_GUILD.create_text_channel(str(message.author.id))
             await dm.send(embed=self.strfembed("""\
 自己紹介文が見つかりませんでした。
