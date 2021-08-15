@@ -18,6 +18,14 @@ vi .env # 必要な情報を入力
 # pythonで使用するのパッケージインストール
 pip install -r requirements.txt
 
+#.pre-commit-config.yamlを適用してpre-commit時に自動コードレビューを行う設定適応
+pre-commit install
+
+## Cogs配下の各コードの中にチャンネルのIDを直接記入しているので
+## 利用する際は各自のギルド内で使用するチャンネルIDに変更してください。
+## また、management.pyから動かしたいコード以外をコメントすることで
+## 必要な処理のみを動かすことが可能になる。
+
 # 起動元のpythonファイルを起動する
 python3 management.py
 ```
