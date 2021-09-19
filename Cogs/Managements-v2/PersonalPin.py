@@ -20,13 +20,16 @@ class PersonalPin(commands.Cog):
                 if str(payload.member.id) == channel.topic:
                     ChannelID = payload.channel_id
                     MessageID = payload.message_id
-                    message = await self.bot.get_channel(ChannelID).fetch_message(MessageID)
+                    message = await self.bot.get_channel(ChannelID).fetch_message(MessageID)  # noqa: E501
                     if channel.id == ChannelID:
                         await message.pin()
                         break
                     else:
                         embed = discord.Embed(color=0x80ff00)
-                        embed.add_field(name=self.WordCount(message.content), value=f"[URL](https://discord.com/channels/{payload.member.guild.id}/{ChannelID}/{MessageID})")
+                        embed.add_field(
+                            name=self.WordCount(message.content),  # noqa: E501
+                            value=f"[URL](https://discord.com/channels/{payload.member.guild.id}/{ChannelID}/{MessageID})"  # noqa: E501
+                        )
                         msg = await channel.send(embed=embed)
                         try:
                             await msg.pin()
@@ -44,7 +47,7 @@ class PersonalPin(commands.Cog):
                     ChannelID = payload.channel_id
                     MessageID = payload.message_id
                     if channel.id == ChannelID:
-                        message = await self.bot.get_channel(ChannelID).fetch_message(MessageID)
+                        message = await self.bot.get_channel(ChannelID).fetch_message(MessageID)  # noqa: E501
                         await message.unpin()
                     else:
                         await channel.send("自分のチャンネルでのみ、ピンを外すことができます。")
