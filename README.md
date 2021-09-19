@@ -1,8 +1,9 @@
 # 目的
 - Disocordギルド[ mo9mo9study ]でコミュ運営を便利にする機能を管理しています
 
-# 起動方法
+# management.pyの起動方法
 ```sh
+pythone -m venv venv
 # venv
 ## この環境では venv でパッケージを管理しています
 ## 仮想環境の有効化
@@ -28,4 +29,21 @@ pre-commit install
 
 # 起動元のpythonファイルを起動する
 python3 management.py
+```
+
+# management-v2.pyの起動方法
+- management.pyと異なるのはdiscord.pyのバージョンがpypiでなくgithubからv2.0.0以上を使用する
+```sh
+pythone -m venv venv-v2
+
+source venv-v2/bin/avtivate
+
+pip install -r requirements.txt
+
+pip install -U git+https://github.com/Rapptz/discord.py
+
+# discord.pyのバージョンがv2.0.0以上であることを確認(記述時: v2.0.0a)
+pip show discord.py
+
+python3 management-v2.py
 ```
