@@ -34,9 +34,9 @@ python3 management.py
 # management-v2.pyの起動方法
 - management.pyと異なるのはdiscord.pyのバージョンがpypiでなくgithubからv2.0.0以上を使用する
 ```sh
-pythone -m venv venv-v2
+python3 -m venv venv-v2
 
-source venv-v2/bin/avtivate
+source venv-v2/bin/activate
 
 pip install -r requirements.txt
 
