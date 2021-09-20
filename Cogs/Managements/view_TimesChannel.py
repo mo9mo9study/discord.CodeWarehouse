@@ -39,7 +39,7 @@ class ViewTimesChannel(commands.Cog):
             member_id = payload.member.id
             select_msg = await self.channel.fetch_message(payload.message_id)
 
-            for times_channel in member.guild.text_channels:
+            for times_channel in payload.member.guild.text_channels:
                 if times_channel.topic == str(member_id):
                     msg = await self.channel.send(times_channel.mention)
                     await self.time_sleep(msg)
