@@ -30,25 +30,28 @@ class ViewTimesChannel(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if payload.member.bot:
+        # BOTとのDMのリアクションの場合payload.memberの値がNoneになってしまうため
+        # reaction_remove同様にreaction_addでもfetch_userでmenberオブジェクトを取得する
+        member = await self.bot.fetch_user(payload.user_id)
+        if member.bot:
             return
         if payload.message_id == self.message_id:
             member_id = payload.member.id
             select_msg = await self.channel.fetch_message(payload.message_id)
 
-            for times_channel in payload.member.guild.text_channels:
+            for times_channel in member.guild.text_channels:
                 if times_channel.topic == str(member_id):
                     msg = await self.channel.send(times_channel.mention)
                     await self.time_sleep(msg)
                     await select_msg.remove_reaction(payload.emoji,
-                                                     payload.member)
+                                                     member)
                     break
             else:
                 msg = await self.channel.send(textwrap.dedent(f"""\
                     timesチャンネルが見つかりませんでした。
                     {self.CREATE_TIMES.mention} でtimesを作成してください。"""))
                 await self.time_sleep(msg)
-                await select_msg.remove_reaction(payload.emoji, payload.member)
+                await select_msg.remove_reaction(payload.emoji, member)
 
     async def time_sleep(self, msg):
         await asyncio.sleep(self.second)

@@ -89,10 +89,13 @@ class Times(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if payload.member.bot:
+        # BOTとのDMのリアクションの場合payload.memberの値がNoneになってしまうため
+        # reaction_remove同様にreaction_addでもfetch_userでmenberオブジェクトを取得する
+        member = await self.bot.fetch_user(payload.user_id)
+        if member.bot:
             return
         if payload.message_id == self.message_id:
-            user_id = int(payload.member.id)
+            user_id = int(member.id)
             for channel in self.GUILD.text_channels:
                 if channel.topic == str(user_id):
                     msg = await self.TIMES_CREATE.send(textwrap.dedent(f"""\
@@ -100,7 +103,7 @@ class Times(commands.Cog):
                         {self.VIEW_TIMES.mention} でtimesに移動しよう"""))
                     await self.time_sleep(msg)
                     await self.message.remove_reaction(payload.emoji,
-                                                       payload.member)
+                                                       member)
                     break
             else:
                 await self.channelCreateSend(self.getMember(user_id))
@@ -109,7 +112,7 @@ class Times(commands.Cog):
                     {self.VIEW_TIMES.mention} でtimesに移動しよう"""))
                 await self.time_sleep(msg)
                 await self.message.remove_reaction(payload.emoji,
-                                                   payload.member)
+                                                   member)
 
     async def time_sleep(self, msg):
         await asyncio.sleep(self.second)
