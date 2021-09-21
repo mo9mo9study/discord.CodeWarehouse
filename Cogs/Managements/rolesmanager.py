@@ -7,7 +7,7 @@ import yaml
 from .voiceChannelJoinLeave_roleModify import VoiceJoin_Role
 
 
-class Reaction_AddRole(VoiceJoin_Role):
+class Reaction_AddRole(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -84,11 +84,11 @@ class Reaction_AddRole(VoiceJoin_Role):
 
     async def Add_Reaction(self, payload, reaction, *args):
         if str(payload.emoji) == reaction:
-            await self.AddRole(payload.member, *args)
+            await VoiceJoin_Role(self.bot).AddRole(payload.member, *args)
 
     async def Remove_Reaction(self, payload, member, reaction, *args):
         if str(payload.emoji) == reaction:
-            await self.RemoveRole(member, *args)
+            await VoiceJoin_Role(self.bot).RemoveRole(member, *args)
 
     async def send_message(self, mode, payload, member, channel):
         if mode == "add":
