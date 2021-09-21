@@ -23,13 +23,14 @@ class VoiceJoin_Role(commands.Cog):
                                        self.musicChatRokeId,
                                        self.workRoomChatRoleId)
                 elif after.channel.id == self.loungeVoiceChatId:
+                    print(f"[INFO] {member.name}が{after.channel.name}に入室")
                     await self.AddRole(member,
                                        self.musicChatRokeId,
                                        self.loungeChatRoleId)
             if before.channel is not None:  # 対象VC退室時
-                print(f"[INFO] {member.name}が{before.channel.name}から退室")
                 if before.channel.id in (self.workRoomVoiceChatId,
                                          self.loungeVoiceChatId):
+                    print(f"[INFO] {member.name}が{before.channel.name}から退室")
                     await self.RemoveRole(member,
                                           self.musicChatRokeId,
                                           self.workRoomChatRoleId,
