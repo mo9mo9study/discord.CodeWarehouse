@@ -25,11 +25,13 @@ class VoiceJoin_Role(commands.Cog):
                 if after.channel.id == self.workRoomVoiceChatId:
                     print(f"[INFO] {member.name}が{after.channel.name}に入室")
                     await self.AddRole(member,
+                                       self.GUILD,
                                        self.musicChatRoleId,
                                        self.workRoomChatRoleId)
                 elif after.channel.id == self.loungeVoiceChatId:
                     print(f"[INFO] {member.name}が{after.channel.name}に入室")
                     await self.AddRole(member,
+                                       self.GUILD,
                                        self.musicChatRoleId,
                                        self.loungeChatRoleId)
             if before.channel is not None:  # 対象VC退室時
@@ -37,19 +39,20 @@ class VoiceJoin_Role(commands.Cog):
                                          self.loungeVoiceChatId):
                     print(f"[INFO] {member.name}が{before.channel.name}から退室")
                     await self.RemoveRole(member,
+                                          self.GUILD,
                                           self.musicChatRoleId,
                                           self.workRoomChatRoleId,
                                           self.loungeChatRoleId)
 
-    async def AddRole(self, member, *args):
+    async def AddRole(self, member, guild, *args):
         for role_id in args:
-            role = self.GUILD.get_role(role_id)
+            role = guild.get_role(role_id)
             print(f"[INFO] {member.name}に権限「{role.name}」を付与")
             await member.add_roles(role)
 
-    async def RemoveRole(self, member, *args):
+    async def RemoveRole(self, member, guild, *args):
         for role_id in args:
-            role = self.GUILD.get_role(role_id)
+            role = guild.get_role(role_id)
             print(f"[INFO] {member.name}から権限「{role.name}」を剥奪")
             await member.remove_roles(role)
 

@@ -11,16 +11,17 @@ class Reaction_AddRole(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.guild_id = 603582455756095488
+        self.GUILD_ID = 603582455756095488
         self.channel_id = 704579339173494835
 
     @commands.Cog.listener()
     async def on_ready(self):
+        self.GUILD = self.bot.get_guild(self.GUILD_ID)
         with open('Settings/role.yaml', encoding="utf-8") as file:
             self.role = yaml.safe_load(file.read())
 
         self.channel = self.bot.get_guild(
-            self.guild_id).get_channel(self.channel_id)
+            self.GUILD_ID).get_channel(self.channel_id)
         await self.channel.purge()
 
         role_name = map(
@@ -47,26 +48,28 @@ class Reaction_AddRole(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         # BOTとのDMのリアクションの場合payload.memberの値がNoneになってしまうため
-        # reaction_remove同様にreaction_addでもfetch_userでmenberオブジェクトを取得する
-        member = await self.bot.fetch_user(payload.user_id)
+        # reaction_remove同様にreaction_addでもfetch_memberでmenberオブジェクトを取得する
+        # fetch_userを使わない理由はUserオブジェクトだと「add_roles」ができないため
+        member = await self.GUILD.fetch_member(payload.user_id)
         if member.bot:
             return
         if payload.message_id == self.message_id:
             await self.wastebasket(payload, self.channel)
             for roles in self.role["roles"]:
                 await self.Add_Reaction(payload,
+                                        member,
                                         roles["reaction"],
                                         roles["roles_id"])
             await self.send_message("add", payload, member, self.channel)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-        guild = self.bot.get_guild(payload.guild_id)
-        member = await self.bot.fetch_user(payload.user_id)
+        member = await self.GUILD.fetch_member(payload.user_id)
         if member.bot:
             return
         if payload.message_id == self.message_id:
-            message = await guild.get_channel(self.channel_id).fetch_message(self.message_id)  # noqa : E501
+            message = await self.GUILD.get_channel(
+                self.channel_id).fetch_message(self.message_id)
             reactions = message.reactions
             for reaction in reactions:
                 if str(reaction) == "🗑️":
@@ -82,13 +85,13 @@ class Reaction_AddRole(commands.Cog):
                                         member,
                                         self.channel)
 
-    async def Add_Reaction(self, payload, reaction, *args):
+    async def Add_Reaction(self, payload, member, reaction, *args):
         if str(payload.emoji) == reaction:
-            await VoiceJoin_Role(self.bot).AddRole(payload.member, *args)
+            await VoiceJoin_Role(self.bot).AddRole(member, self.GUILD,  *args)
 
     async def Remove_Reaction(self, payload, member, reaction, *args):
         if str(payload.emoji) == reaction:
-            await VoiceJoin_Role(self.bot).RemoveRole(member, *args)
+            await VoiceJoin_Role(self.bot).RemoveRole(member, self.GUILD, *args)  # noqa : E501
 
     async def send_message(self, mode, payload, member, channel):
         if mode == "add":
