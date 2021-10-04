@@ -7,7 +7,7 @@ class TimesnameUpdate(commands.Cog):
     def self(self, bot):
         self.bot = bot
         self.GUILD_ID = 603582455756095488
-        self.CHANNEL_ID = 838702281481781309
+        self.CHANNEL_ID = 894577054262116426
 
     @commands.Cog.listener()
     async def on_ready(self):
