@@ -1,3 +1,5 @@
+import asyncio
+
 from discord.ext import commands
 import discord
 
@@ -9,6 +11,7 @@ class TimesnameUpdate(commands.Cog):
         self.GUILD_ID = 603582455756095488
         self.CHANNEL_ID = 894577054262116426
         self.LOG_CHANNEL_ID = 801060150433153054
+        self.deletetime = 3
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -49,14 +52,20 @@ class TimesnameUpdate(commands.Cog):
                                         value=before_name)
                         embed.add_field(name="変更後のチャンネル名",
                                         value=after_name)
-                        await times_channel.send(embed=embed)
                         log_msg = f"[INFO] チャンネル名変更({before_name} ▶ {after_name}"  # noqa #501
                         await self.LOG_CHANNEL.send(log_msg)
+                        msg = await self.CHANNEL.send("timesチャンネル名を変更しました")
                     else:
                         embed = discord.Embed(title="変更前と変更後の名前に差分がありませんでした",
                                               description=f"{member.mention} チャンネル名を変更しませんでした")  # noqa #501
-                        await times_channel.send(embed=embed)
+                        msg = await self.CHANNEL.send("timesチャンネル名に変更はありません")
+                    await times_channel.send(embed=embed)
+                    await self.time_sleep(msg)
                     break
+
+    async def time_sleep(self, msg):
+        await asyncio.sleep(self.deletetime)
+        await msg.delete()
 
 
 def setup(bot):
