@@ -28,5 +28,6 @@ bot.load_extension("Cogs.Managements.slotstudyrecord")
 bot.load_extension("Cogs.Managements.languageVisualization")
 bot.load_extension("Cogs.Managements.membersinfo_dbreset")
 bot.load_extension("Cogs.Managements.regularly_times_delete")
+bot.load_extension("Cogs.Managements.timesname_update")
 
 bot.run(TOKEN)
