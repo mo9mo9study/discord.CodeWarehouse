@@ -12,7 +12,9 @@ bot = commands.Bot(command_prefix=prefix, help_command=None, intents=intents)
 
 bot.load_extension("Cogs.default")
 
-bot.load_extension("Cogs.afk.afk")
+# 以下issueの検証により、Cogs.afk.afkが今回の問題を発生させているためコメントアウト
+# https://github.com/mo9mo9study/discord.CodeWarehouse/issues/136
+# bot.load_extension("Cogs.afk.afk")
 bot.load_extension("Cogs.afk.unmute")
 bot.load_extension("Cogs.Managements.voiceChannelJoinLeave_roleModify")
 bot.load_extension("Cogs.Managements.rolesmanager")
