@@ -20,7 +20,7 @@ class CounterStudyingmember(commands.Cog):
                 count_member += 1
         return count_member
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=180)
     async def counter_studyingmembers(self):
         await self.bot.wait_until_ready()  # Botが準備状態になるまで待機
         GUILD = self.bot.get_guild(self.GUILD_ID)
@@ -30,7 +30,6 @@ class CounterStudyingmember(commands.Cog):
         counter_studyingmember += self.count_member(GUILD.voice_channels)
         counter_studyingmember += self.count_member(GUILD.stage_channels)
         after_name = f"勉強中：{counter_studyingmember} users"
-        print(f"[DEBUG] {counter_studyingmember} users")
         if before_name != after_name:
             await CHANNEL.edit(name=after_name)
             print(f"[INFO] 勉強中カウンター名を変更しました({before_name} → {after_name})")
