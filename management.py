@@ -32,5 +32,6 @@ bot.load_extension("Cogs.Managements.membersinfo_dbreset")
 bot.load_extension("Cogs.Managements.regularly_times_delete")
 bot.load_extension("Cogs.Managements.timesname_update")
 bot.load_extension("Cogs.Managements.counter_studyingmember")
+bot.load_extension("Cogs.Managements.times_keepchisei")
 
 bot.run(TOKEN)
