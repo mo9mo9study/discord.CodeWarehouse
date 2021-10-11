@@ -22,15 +22,20 @@ class TimesKeepChisei(commands.Cog):
         self.CREATE_TIMES = self.GUILD.get_channel(self.CREATE_TIMES_ID)
         self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
         await self.CHANNEL.purge()
-        embed = discord.Embed(title="自分のtimesに(bot)chiseiを呼びます",
-                              description="- 許可するとchiseiからランダムでメッセージが届くことがあります")  # noqa #501
-        embed.add_field(name=" 👇 使い方", value="（超簡単）このメッセージにリアクションをするだけ‼️ ")  # noqa #501
+        embed = discord.Embed(title="自分のtimesでchisei(bot)を飼えます",
+                              description="- きまぐれで今まで覚えた単語を使って返事をする子です。「知性」って呼んでみると...？！興味ある人は遊んでみてね")  # noqa #501
+        embed.add_field(name="リアクションを押す",
+                        value="- 自分のtimesでchiseiからのメッセージ送信を権限を許可すると、chiseiからきまぐれにでメッセージが届くようになります")  # noqa #501
+        embed.add_field(name="リアクションを外す",
+                        value="- もう一度リアクションを押すと、chiseiからメッセージが届かなくなります")  # noqa #501
+        embed.add_field(name=" 👇 使い方",
+                        value="（超簡単）このメッセージにリアクションをするだけ‼️ ",
+                        inline=False)
         self.message = await self.CHANNEL.send(embed=embed)
         self.message_id = self.message.id
         await self.message.add_reaction("🦎")
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
+    async def times_chisei2permission(self, payload, bool_per, msg_action):
         member = await self.bot.fetch_user(payload.user_id)
         if member.bot:
             return
@@ -40,11 +45,11 @@ class TimesKeepChisei(commands.Cog):
             for times_channel in self.GUILD.text_channels:
                 if times_channel.topic == str(member_id):
                     await self.channel_editpermission(times_channel,
-                                                      True)
-                    msg = f"{times_channel.mention}にchiseiを呼びました"
+                                                      bool_per)
+                    msg = f"{times_channel.mention}{msg_action}"
                     send_msg = await self.CHANNEL.send(msg)
                     await ViewTimesChannel(self.bot).time_sleep(send_msg)
-                    log_msg = f"[INFO] {times_channel.mention}にロールchisei2からの送信権限をTrueに変更"  # noqa #501
+                    log_msg = f"[INFO] {times_channel.mention}にロールchisei2からのメッセージ送信権限を{bool_per}に変更"  # noqa #501
                     await self.LOG_CHANNEL.send(log_msg)
                     break
             else:
@@ -55,30 +60,46 @@ class TimesKeepChisei(commands.Cog):
                 await select_msg.remove_reaction(payload.emoji, member)
 
     @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload):
-        member = await self.bot.fetch_user(payload.user_id)
-        print(member)
-        if member.bot:
-            return
-        if payload.message_id == self.message_id:
-            member_id = member.id
-            select_msg = await self.CHANNEL.fetch_message(payload.message_id)  # noqa #841
-            for times_channel in self.GUILD.text_channels:
-                if times_channel.topic == str(member_id):
-                    await self.channel_editpermission(times_channel,
-                                                      None)
-                    msg = f"{times_channel.mention}からchiseiを追い出しました"
-                    send_msg = await self.CHANNEL.send(msg)
-                    await ViewTimesChannel(self.bot).time_sleep(send_msg)
-                    log_msg = f"[INFO] {times_channel.mention}にロールchisei2からの送信権限をNoneに変更"  # noqa #501
-                    await self.LOG_CHANNEL.send(log_msg)
-                    break
+    async def on_raw_reaction_add(self, payload):
+        bool_per = True
+        msg_action = "でchisei(bot)を飼い始めました"
+        await self.times_chisei2permission(payload, bool_per, msg_action)
 
-    async def channel_editpermission(self, times_channel, per_bool):
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        bool_per = None
+        msg_action = "でchisei(bot)とさよならしました"
+        await self.times_chisei2permission(payload, bool_per, msg_action)
+
+    async def channel_editpermission(self, channel, per_bool):
         chisei2_role = discord.utils.get(self.GUILD.roles, name="chisei2")
         overwrite = discord.PermissionOverwrite()
         overwrite.send_messages = per_bool
-        await times_channel.set_permissions(chisei2_role, overwrite=overwrite)
+        await channel.set_permissions(chisei2_role, overwrite=overwrite)
+
+    async def selectchannel_chisei2permission(self, ctx, arg, per_bool):
+        print(f"[DEBUG] --{arg}/{len(str(arg))}--")
+        print(f"[DEBUG] --{ctx.command.name}--")
+        if len(arg) != 18:
+            return
+        edit_channel = self.GUILD.get_channel(int(arg))
+        if edit_channel and isinstance(edit_channel, discord.TextChannel):
+            await self.channel_editpermission(edit_channel, per_bool)
+            log_msg = f"[INFO] {edit_channel.mention}にロールchisei2からの送信権限を{per_bool}に変更"  # noqa #501
+            await self.LOG_CHANNEL.send(log_msg)
+        else:
+            err_msg = f"[ERROR] {ctx.command.name}: 引数( {arg} )からチャンネルを取得できませんでした"  # noqa #501
+            await self.LOG_CHANNEL.send(err_msg)
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def chisei_sendtrue(self, ctx, arg):
+        await self.selectchannel_chisei2permission(ctx, arg, True)
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def chisei_sendnone(self, ctx, arg):
+        await self.selectchannel_chisei2permission(ctx, arg, None)
 
 
 def setup(bot):
