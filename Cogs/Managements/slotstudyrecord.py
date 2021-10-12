@@ -46,7 +46,8 @@ class SlotStudyrecord(commands.Cog):
             result_name = re.compile(
                 r'.*\[.*\]\s*(.*)  Study time.*').match(message.content)
             strName = result_name[1]
-            # 5分以内の記録では動作しないようにするため
+            # 一定時間内の記録では動作しないようにする
+            # 人が増えて実行回数が多くなるので、条件を変更
             if intStudyTime < self.notOutputTime:
                 return
             else:
