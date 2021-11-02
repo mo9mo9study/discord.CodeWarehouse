@@ -17,6 +17,7 @@ class RegularlyTimesDelete(commands.Cog):
     async def on_ready(self):
         self.GUILD = self.bot.get_guild(self.GUILD_ID)
         self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
+        self.regularly_times_delete.start()
 
     async def times_delete(self):
         deletetimes_count = 0
