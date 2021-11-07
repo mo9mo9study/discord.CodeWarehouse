@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from mo9mo9db.dbtables import Selfintroduction
+
 
 class Self_Introduction(commands.Cog):
 
@@ -38,14 +40,20 @@ class Self_Introduction(commands.Cog):
                     return
                 await self.complete(channel, member.id)
 
-    # サーバーにメンバーが参加した時
+    async def db_insert_selfintroduction(self, member):
+        obj = Selfintroduction(
+            guild_id=member.guild.id,
+            member_id=member.id
+        )
+        Selfintroduction.insert(obj)
 
+    # サーバーにメンバーが参加した時
     @commands.Cog.listener()
     async def on_member_join(self, member):
         # discord.DMChannelオブジェクトを取得
         dm = await member.create_dm()
-        # 参加したメンバーのidを名前にしたTextChannelを作成
-        await self.DEBUG_GUILD.create_text_channel(str(member.id))
+        # selfintroductionテーブルに参加したメンバーの情報をinsert
+        await self.db_insert_selfintroduction(member)
         # 参加者にdmを送る
         await dm.send(embed=self.strfembed("""\
 ギルドへの参加ありがとうございます
