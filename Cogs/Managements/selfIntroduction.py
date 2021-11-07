@@ -60,115 +60,122 @@ class Self_Introduction(commands.Cog):
 これから自己紹介の処理を進めますので、質問に答えて下さい"""))
         await dm.send(embed=self.strfembed(self.question1))
 
-    # DMチャンネルにメッセージが送られた時
+    def db_select_selfintroduction(member, select_colmuns):
+        session = Selfintroduction.session()
+        obj = Selfintroduction.objects(session).filter(
+            Selfintroduction.member_id == member.id,
+            Selfintroduction.guild_id == member.guild.id).first()
+        return obj
 
+    # DMチャンネルにメッセージが送られた時
     @commands.Cog.listener()
+    @commands.dm_only()
     async def on_message(self, message):
-        if isinstance(message.channel, discord.DMChannel):
-            # 送信者がbotの場合は無視する
-            if message.author.bot:
-                return
-            dm = await message.author.create_dm()
-            if message.content == "":
-                await dm.send(embed=self.strfembed("""\
+        # if isinstance(message.channel, discord.DMChannel):
+        # 送信者がbotの場合は無視する
+        if message.author.bot:
+            return
+        dm = await message.author.create_dm()
+        if message.content == "":
+            await dm.send(embed=self.strfembed("""\
 自己紹介の編集中です
 文字列を送信してください"""))
-                return
-            for channel in self.DEBUG_GUILD.text_channels:
-                # DEBUGサーバーからメッセージ送信者のidと同じ名前のTextChannelを見つける
-                if channel.name == str(message.author.id):
-                    # channelを見つけたらそのチャンネル内の合計メッセージ数を取得する
-                    count = await self.get_count(channel)
-                    # メッセージ数が0の時の処理(名前が格納される)
-                    if count == 0:
+            return
+        for channel in self.DEBUG_GUILD.text_channels:
+            # DEBUGサーバーからメッセージ送信者のidと同じ名前のTextChannelを見つける
+            if channel.name == str(message.author.id):
+                # channelを見つけたらそのチャンネル内の合計メッセージ数を取得する
+                count = await self.get_count(channel)
+                # メッセージ数が0の時の処理(名前が格納される)
+                if count == 0:
+                    await self.send_message(channel,
+                                            message.channel,
+                                            message.content,
+                                            f"""\> 性別を教えて下さい。\n{self.question2}""")  # noqa: W605,E501
+                    break
+                # メッセージ数が1の時(性別が格納される)
+                elif count == 1:
+                    if message.content in ["男", "女", "非公開"]:
                         await self.send_message(channel,
                                                 message.channel,
                                                 message.content,
-                                                f"""\> 性別を教えて下さい。\n{self.question2}""")  # noqa: W605,E501
-                        break
-                    # メッセージ数が1の時(性別が格納される)
-                    elif count == 1:
-                        if message.content in ["男", "女", "非公開"]:
-                            await self.send_message(channel,
-                                                    message.channel,
-                                                    message.content,
-                                                    self.question3)
-                        else:
-                            await message.channel.send(self.question2)
-                        break
-                    # メッセージ数が2の時(TwitterIDが格納される)
-                    elif count == 2:
-                        await self.send_message(channel,
-                                                message.channel,
-                                                message.content,
-                                                self.question4)
-                        break
-                    # メッセージ数が3の時(得意分野が格納される)
-                    elif count == 3:
-                        await self.send_message(channel,
-                                                message.channel,
-                                                message.content,
-                                                self.question5)
-                        break
-                    # メッセージ数が4の時(今まで勉強してきたことが格納される)
-                    elif count == 4:
-                        await self.send_message(channel,
-                                                message.channel,
-                                                message.content,
-                                                self.question6)
-                        break
-                    # メッセージ数が5の時(これから勉強していきたいことが格納される)
-                    elif count == 5:
-                        await self.send_message(channel,
-                                                message.channel,
-                                                message.content,
-                                                "これで質問は終了です")
-                        await self.complete(channel,
-                                            message.author.id)
-                        break
-                    elif count == 6:
-                        await self.complete(channel,
-                                            message.author.id)
-                        break
-                    # メッセージ数が7の時
-                    elif count == 7:
-                        await message.channel.send(embed=self.strfembed(f"""\
+                                                self.question3)
+                    else:
+                        await message.channel.send(self.question2)
+                    break
+                # メッセージ数が2の時(TwitterIDが格納される)
+                elif count == 2:
+                    await self.send_message(channel,
+                                            message.channel,
+                                            message.content,
+                                            self.question4)
+                    break
+                # メッセージ数が3の時(得意分野が格納される)
+                elif count == 3:
+                    await self.send_message(channel,
+                                            message.channel,
+                                            message.content,
+                                            self.question5)
+                    break
+                # メッセージ数が4の時(今まで勉強してきたことが格納される)
+                elif count == 4:
+                    await self.send_message(channel,
+                                            message.channel,
+                                            message.content,
+                                            self.question6)
+                    break
+                # メッセージ数が5の時(これから勉強していきたいことが格納される)
+                elif count == 5:
+                    await self.send_message(channel,
+                                            message.channel,
+                                            message.content,
+                                            "これで質問は終了です")
+                    await self.complete(channel,
+                                        message.author.id)
+                    break
+                elif count == 6:
+                    await self.complete(channel,
+                                        message.author.id)
+                    break
+                # メッセージ数が7の時
+                elif count == 7:
+                    await message.channel.send(embed=self.strfembed(f"""\
 {message.author.name}さんの自己紹介文は既に登録済みです。
 変更する場合は、[ ¥predit ]とコマンドを送信して下さい"""))
-                        break
-                    # メッセージ数が8の時、最新メッセージに書かれたメッセージIDの内容を修正
-                    elif count == 8:
-                        messages = await channel.history(limit=None).flatten()
-                        # messages[0]: 修正対象のIDをmessage.contentに格納したメッセージ
-                        # messages[0].content: 修正する対象のメッセージID
-                        # messages[1]: mo9mo9ギルドに送信したメッセージIDをmessage.contentに格納したメッセージ # noqa: E501
-                        # messages[1].content: mo9mo9ギルドに送信された自己紹介メッセージのID
-                        edit_message = await channel.fetch_message(int(messages[0].content))  # noqa: E501
-                        # mo9mo9ギルドに送信した自己紹介メッセージを示すメッセージオブジェクト
-                        selfintroduction_message = await self.INTRODUCTION_CHANNEL.fetch_message(int(messages[1].content))  # noqa: E501
+                    break
+                # メッセージ数が8の時、最新メッセージに書かれたメッセージIDの内容を修正
+                elif count == 8:
+                    messages = await channel.history(limit=None).flatten()
+                    # messages[0]: 修正対象のIDをmessage.contentに格納したメッセージ
+                    # messages[0].content: 修正する対象のメッセージID
+                    # messages[1]: mo9mo9ギルドに送信したメッセージIDをmessage.contentに格納したメッセージ # noqa: E501
+                    # messages[1].content: mo9mo9ギルドに送信された自己紹介メッセージのID
+                    edit_message = await channel.fetch_message(int(messages[0].content))  # noqa: E501
+                    # mo9mo9ギルドに送信した自己紹介メッセージを示すメッセージオブジェクト
+                    selfintroduction_message = await self.INTRODUCTION_CHANNEL.fetch_message(int(messages[1].content))  # noqa: E501
 
-                        # 編集対象のメッセージ内容を修正する
-                        await edit_message.edit(content=message.content)
-                        # 8個目の編集対象を示すメッセージオブジェクト削除
-                        await messages[0].delete()
-                        await selfintroduction_message.delete()
-                        await messages[1].delete()
-                        # 完成した自己紹介を送信する
-                        print(message)
-                        await self.complete(channel, message.author.id)
-                        break
-                    else:
-                        print(
-                            f"{message.author.id}のメッセージの取得数が想定外です： (取得数: {count})")  # noqa: E501
-                        break
-            # DEBUGサーバー内にメッセージ送信者のチャンネルが見つからなかったときに
-            # TextChanenlを作成する
-            else:
-                await self.DEBUG_GUILD.create_text_channel(str(message.author.id))  # noqa: E501
-                await message.channel.send("""\
+                    # 編集対象のメッセージ内容を修正する
+                    await edit_message.edit(content=message.content)
+                    # 8個目の編集対象を示すメッセージオブジェクト削除
+                    await messages[0].delete()
+                    await selfintroduction_message.delete()
+                    await messages[1].delete()
+                    # 完成した自己紹介を送信する
+                    print(message)
+                    await self.complete(channel, message.author.id)
+                    break
+                else:
+                    print(
+                        f"{message.author.id}のメッセージの取得数が想定外です： (取得数: {count})")  # noqa: E501
+                    break
+        # DEBUGサーバー内にメッセージ送信者のチャンネルが見つからなかったときに
+        # TextChanenlを作成する
+        else:
+            await self.DEBUG_GUILD.create_text_channel(str(message.author.id))  # noqa: E501
+            await message.channel.send("""\
 自己紹介文が見つかりませんでした。
 質問に答えると自己紹介が登録できます。""")
-                await message.channel.send(self.question1)
+            await message.channel.send(self.question1)
 
     # ---on_messageイベント内でのみ呼び出される---
     # channelとdmにメッセージを送信するメソッド
