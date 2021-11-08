@@ -60,17 +60,56 @@ class Self_Introduction(commands.Cog):
 これから自己紹介の処理を進めますので、質問に答えて下さい"""))
         await dm.send(embed=self.strfembed(self.question1))
 
-    def db_select_selfintroduction(member, select_colmuns):
+    def db_select_selfintroduction(self, member):
+        """
+        対象メンバーの自己紹介データを取得する
+        """
         session = Selfintroduction.session()
         obj = Selfintroduction.objects(session).filter(
             Selfintroduction.member_id == member.id,
             Selfintroduction.guild_id == member.guild.id).first()
         return obj
 
+    def db_update_selfintroduction(self, select_colmuns, after_value):
+        """
+        カラムを指定して自己紹介データを修正する
+        """
+        obj = self.db_select_selfintroduction()
+        obj[select_colmuns] = after_value
+        obj.commit()
+
+    def check_missingdata(self):
+        """
+        修正するカラムを指定している場合、修正しようとしているカラム名を返す
+        修正するカラムを指定していない場合、不足しているデータのカラムを返す
+        """
+        member_data = self.db_select_selfintroduction()
+        if member_data["mod_column"]:
+            missingdata_colmuns = member_data["mod_column"]
+        elif member_data.nickname:
+            missingdata_colmuns = "nickname"
+        elif member_data["sex"]:
+            missingdata_colmuns = "sex"
+        elif member_data["twitter_id"]:
+            missingdata_colmuns = "twitter_id"
+        elif member_data["specialty"]:
+            missingdata_colmuns = "specialty"
+        elif member_data["before_study"]:
+            missingdata_colmuns = "before_study"
+        elif member_data["after_study"]:
+            missingdata_colmuns = "after_study"
+        elif member_data["sendmsg_id"]:
+            missingdata_colmuns = "sendmsg_id"
+        return missingdata_colmuns
+
     # DMチャンネルにメッセージが送られた時
+
     @commands.Cog.listener()
     @commands.dm_only()
     async def on_message(self, message):
+        """
+        メンバーとBOT間のDMをトリガーに実行される
+        """
         # if isinstance(message.channel, discord.DMChannel):
         # 送信者がbotの場合は無視する
         if message.author.bot:
