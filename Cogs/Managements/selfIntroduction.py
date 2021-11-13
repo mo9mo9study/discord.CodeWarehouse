@@ -51,19 +51,26 @@ class Self_Introduction(commands.Cog):
     # サーバーにメンバーが参加した時
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        """
+        メンバー参加時に処理が実行され
+        参加したメンバーのメンバー情報（レコード）がselfintroductionテーブルに作成される
+        """
         # discord.DMChannelオブジェクトを取得
         dm = await member.create_dm()
         # selfintroductionテーブルに参加したメンバーの情報をinsert
         await self.db_insert_selfintroduction(member)
         # 参加者にdmを送る
-        await dm.send(embed=self.strfembed("""\
-ギルドへの参加ありがとうございます
-これから自己紹介の処理を進めますので、質問に答えて下さい"""))
+        await dm.send(embed=self.strfembed("ギルドへの参加ありがとうございます\nこれから自己紹介の処理を進めますので、質問に答えて下さい"))  # noqa: E501
         await dm.send(embed=self.strfembed(self.question1))
 
     def db_select_selfintroduction(self, member):
         """
         対象メンバーの自己紹介データを取得する
+
+        Parameter
+        ---------
+        member : discord.Member
+            message.authorから取得したメンバーオブジェクト
         """
         session = Selfintroduction.session()
         obj = Selfintroduction.objects(session).filter(
@@ -71,82 +78,137 @@ class Self_Introduction(commands.Cog):
             Selfintroduction.guild_id == member.guild.id).first()
         return obj
 
-    def db_update_selfintroduction(self, select_colmuns, after_value,
-                                   next_mod_colmun):
+    def db_reset_selfintroduction(self, member) -> None:
         """
-        カラムを指定して自己紹介データを修正する
+        対象メンバーの自己紹介データのメンバーが対話式でデータを挿入できるカラムを初期化
+
+        Parameter
+        ---------
+        member : discord.Member
+            message.authorから取得したメンバーオブジェクト
         """
-        obj = self.db_select_selfintroduction()
-        obj[select_colmuns] = after_value
-        if next_mod_colmun:
-            obj["mod_colmun"] = next_mod_colmun
+        session = Selfintroduction.session()
+        obj = Selfintroduction.objects(session).filter(
+            Selfintroduction.member_id == member.id,
+            Selfintroduction.guild_id == member.guild.id).first()
+        reset_columns = ["nickname", "sex", "twitter_id", "specialty",
+                         "before_study", "after_study"]
+        for column in reset_columns:
+            obj[column] = None
+        obj["mod_column"] = "nickname"
         obj.commit()
 
-    def check_missingdata(self):
+    def db_update_selfintroduction(self, member, select_column, after_value,
+                                   next_mod_column) -> None:
         """
-        missingdata_colmun: 今回修正するカラムを取得
-        next_missingdata_colmun: 次に修正するカラムがあるか確認
+        カラムを指定して自己紹介データを修正する
+
+        Parameter
+        ---------
+        select_columns : str
+            カラム名[mod_column]から取得した、今回修正されるカラム名
+        after_value : str
+            メンバーから送信されたメッセージの内容
+        next_mod_column : str
+            カラム名[mod_column]に保存される、次修正対象となるカラム名
         """
-        member_data = self.db_select_selfintroduction()
-        missingdata_colmun = None
-        next_missingdata_colmun = None
+        obj = self.db_select_selfintroduction(member)
+        obj[select_column] = after_value
+        if next_mod_column:
+            obj["mod_column"] = next_mod_column
+        obj.commit()
+
+    def check_missingdata(self, member) -> str:
+        """
+        DBからメンバーの自己紹介情報を取得し、現在の処理で受け取ったメッセージ内容を
+        どのカラムに保存するかをかをmod_columnから確認する
+        この処理が正常に終了後、次に修正するカラム名を比較し確定する
+
+        Return
+        ------
+        missingdata_column : str, None
+            今回修正するカラム名
+        next_missingdata_column : str, None
+            今回の処理が正常に完了した場合、次に修正するカラム名
+        """
+        member_data = self.db_select_selfintroduction(member)
+        missingdata_column = None
+        next_missingdata_column = None
         # 次修正するカラムを確認
         if not member_data["nickname"]:
-            next_missingdata_colmun = "nickname"
+            next_missingdata_column = "nickname"
         elif not member_data["sex"]:
-            next_missingdata_colmun = "sex"
+            next_missingdata_column = "sex"
         elif not member_data["twitter_id"]:
-            next_missingdata_colmun = "twitter_id"
+            next_missingdata_column = "twitter_id"
         elif not member_data["specialty"]:
-            next_missingdata_colmun = "specialty"
+            next_missingdata_column = "specialty"
         elif not member_data["before_study"]:
-            next_missingdata_colmun = "before_study"
+            next_missingdata_column = "before_study"
         elif not member_data["after_study"]:
-            next_missingdata_colmun = "after_study"
+            next_missingdata_column = "after_study"
         elif not member_data["sendmsg_id"]:
-            next_missingdata_colmun = "sendmsg_id"
+            next_missingdata_column = "sendmsg_id"
         # 今回修正するカラムを確認
         if member_data["mod_column"]:
-            missingdata_colmun = member_data["mod_column"]
+            missingdata_column = member_data["mod_column"]
         else:
             # mod_columnには修正するカラムの指定はないが
             # 不足しているデータがあった場合
             # 不足しているデータを今回の修正カラムとして昇格する
-            if next_missingdata_colmun:
-                missingdata_colmun = next_missingdata_colmun
-        return missingdata_colmun, next_missingdata_colmun
+            if next_missingdata_column:
+                missingdata_column = next_missingdata_column
+        return missingdata_column, next_missingdata_column
 
-    def select_nextquestionmsg(self, next_missingdata_colmun):
-        if next_missingdata_colmun == "nickname":
+    def select_nextquestionmsg(self, next_missingdata_column) -> str:
+        """
+        次に不足しているデータの情報を元に、次に質問するメッセージを選択する
+
+        Parameters
+        ----------
+        next_missingdata_column : str
+            今回のメッセージの内容をDBに登録した後、次に不足しているカラムの情報
+
+        Return
+        ------
+        next_msg : str
+            botがDBでメンバーに送信するDMメッセージの内容
+        """
+        if next_missingdata_column == "nickname":
             next_msg = self.question1
-        elif next_missingdata_colmun == "sex":
+        elif next_missingdata_column == "sex":
             next_msg = f"""\> 性別を教えて下さい。\n{self.question2}"""  # noqa: W605
-        elif next_missingdata_colmun == "twitter_id":
+        elif next_missingdata_column == "twitter_id":
             next_msg = self.question3
-        elif next_missingdata_colmun == "specialty":
+        elif next_missingdata_column == "specialty":
             next_msg = self.question4
-        elif next_missingdata_colmun == "before_study":
+        elif next_missingdata_column == "before_study":
             next_msg = self.question5
-        elif next_missingdata_colmun == "after_study":
+        elif next_missingdata_column == "after_study":
             next_msg = self.question6
-        elif next_missingdata_colmun == "sendmsg_id":
+        elif next_missingdata_column == "sendmsg_id":
             next_msg = "これで質問は終了です"
         return next_msg
 
-    async def check_msg_content(self, dm, missingdata_colmun, msg_cont):
+    async def check_msg_content(self, dm, missingdata_column, msg_cont) -> bool:  # noqa: E501
         """
         データの値を判定し、想定通りでなければエラーを出す
 
+        Returns
+        -------
+        check_msg : boolen
+
+        Notes
+        -----
         future: データが想定通りじゃない場合は、適当な値に修正する処理も追加したい
-            例えば、
-            TwitterIDが英数字記号以外が含まれていた場合は一律"not_account"にするなど
+            例: TwitterIDが英数字記号以外が含まれていた場合は一律"not_account"にするなど
         """
         check_msg = True
         if msg_cont == "":
             await dm.send(embed=self.strfembed("自己紹介の編集中です\n文字列を送信してください"))
             check_msg = False
         else:
-            if missingdata_colmun == "sex":
+            if missingdata_column == "sex":
                 if msg_cont not in ["男", "女", "非公開"]:
                     check_msg = False
         return check_msg
@@ -162,23 +224,26 @@ class Self_Introduction(commands.Cog):
         if message.author.bot:
             return
         dm = await message.author.create_dm()
+        member = self.GUILD.get_member(dm.me.id)
         # 受信したメッセージの内容をどのカラムに保存するかを確認
         # 次不足しているデータの確認
-        missingdata_colmun, next_missingdata_colmun = self.check_missingdata()
+        missingdata_column, next_missingdata_column = self.check_missingdata(
+            member)
         # データのチェック
-        check_msg = await self.check_msg_content(dm, missingdata_colmun,
+        check_msg = await self.check_msg_content(dm, missingdata_column,
                                                  message.content)
         if check_msg:
             return
         # 後ほど
         # 不足しているデータをDBに書き込み
-        self.db_update_selfintroduction(missingdata_colmun, message.content,
-                                        next_missingdata_colmun)
+        self.db_update_selfintroduction(member, missingdata_column,
+                                        message.content,
+                                        next_missingdata_column)
         # 不足しているデータから次の送信メッセージを選択
-        send_msg = self.select_nextquestionmsg(next_missingdata_colmun)
+        send_msg = self.select_nextquestionmsg(next_missingdata_column)
         await dm.send(embed=self.strfembed(send_msg))
         # データに不足がない場合
-        if not missingdata_colmun and not next_missingdata_colmun:
+        if not missingdata_column and not next_missingdata_column:
             comp_msg = f"{message.author.name}さんの自己紹介文は既に登録済みです。"\
                 + "\n変更する場合は、[ ¥predit ]とコマンドを送信して下さい。"
             await message.channel.send(embed=self.strfembed(comp_msg))
@@ -233,17 +298,40 @@ OKなら👍リアクションを、修正する場合は♻️リアクショ�
             await self.selfintroduction_reset(channel, dm)
 
     # 自己紹介を初期化する処理
-    async def selfintroduction_reset(self, channel, dm):
+    async def selfintroduction_reset(self, dm) -> None:
+        """
+        DBの自己紹介データを初期化する処理
+        ギルド・メンバーID、自己紹介が送信済みなら送信済みのカラムは変更しない
+        その他のカラムをNoneに書き換える
+
+        Parameter
+        ---------
+        dm : Discord.dm
+            BOTにDMしたメンバーのDMオブジェクト
+        """
         await dm.send(embed=self.strfembed("内容を全てリセットします"))
         # TextChannelを再度作成し直し、リセットする
-        await channel.delete()
-        await self.DEBUG_GUILD.create_text_channel(dm.me.id)
+        member = self.GUILD.get_member(dm.me.id)
+        self.db_reset_selfintroduction(member)
         await dm.send(embed=self.strfembed(self.question1))
 
     # ---completeメソッド内でのみ呼び出される---
     # Embedオブジェクトを作成するメソッド
 
     def strfembed(self, str):
+        """
+        文字列をembedに変換する処理
+
+        Parameter
+        ---------
+        str :　str
+            embedに変換したい文字列
+
+        Return
+        ------
+        embed : Discord.Embed
+            strをDiscord.Embedに変換したオブジェクト
+        """
         embed = discord.Embed(title=str)
         return embed
 
