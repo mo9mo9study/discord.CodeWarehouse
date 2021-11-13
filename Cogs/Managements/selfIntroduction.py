@@ -43,7 +43,8 @@ class Self_Introduction(commands.Cog):
     async def db_insert_selfintroduction(self, member):
         obj = Selfintroduction(
             guild_id=member.guild.id,
-            member_id=member.id
+            member_id=member.id,
+            mod_column="nickname"
         )
         Selfintroduction.insert(obj)
 
@@ -70,39 +71,85 @@ class Self_Introduction(commands.Cog):
             Selfintroduction.guild_id == member.guild.id).first()
         return obj
 
-    def db_update_selfintroduction(self, select_colmuns, after_value):
+    def db_update_selfintroduction(self, select_colmuns, after_value,
+                                   next_mod_colmun):
         """
         カラムを指定して自己紹介データを修正する
         """
         obj = self.db_select_selfintroduction()
         obj[select_colmuns] = after_value
+        if next_mod_colmun:
+            obj["mod_colmun"] = next_mod_colmun
         obj.commit()
 
     def check_missingdata(self):
         """
-        修正するカラムを指定している場合、修正しようとしているカラム名を返す
-        修正するカラムを指定していない場合、不足しているデータのカラムを返す
+        missingdata_colmun: 今回修正するカラムを取得
+        next_missingdata_colmun: 次に修正するカラムがあるか確認
         """
         member_data = self.db_select_selfintroduction()
+        missingdata_colmun = None
+        next_missingdata_colmun = None
+        # 次修正するカラムを確認
+        if not member_data["nickname"]:
+            next_missingdata_colmun = "nickname"
+        elif not member_data["sex"]:
+            next_missingdata_colmun = "sex"
+        elif not member_data["twitter_id"]:
+            next_missingdata_colmun = "twitter_id"
+        elif not member_data["specialty"]:
+            next_missingdata_colmun = "specialty"
+        elif not member_data["before_study"]:
+            next_missingdata_colmun = "before_study"
+        elif not member_data["after_study"]:
+            next_missingdata_colmun = "after_study"
+        elif not member_data["sendmsg_id"]:
+            next_missingdata_colmun = "sendmsg_id"
+        # 今回修正するカラムを確認
         if member_data["mod_column"]:
-            missingdata_colmuns = member_data["mod_column"]
-        elif member_data.nickname:
-            missingdata_colmuns = "nickname"
-        elif member_data["sex"]:
-            missingdata_colmuns = "sex"
-        elif member_data["twitter_id"]:
-            missingdata_colmuns = "twitter_id"
-        elif member_data["specialty"]:
-            missingdata_colmuns = "specialty"
-        elif member_data["before_study"]:
-            missingdata_colmuns = "before_study"
-        elif member_data["after_study"]:
-            missingdata_colmuns = "after_study"
-        elif member_data["sendmsg_id"]:
-            missingdata_colmuns = "sendmsg_id"
-        return missingdata_colmuns
+            missingdata_colmun = member_data["mod_column"]
+        else:
+            # mod_columnには修正するカラムの指定はないが
+            # 不足しているデータがあった場合
+            # 不足しているデータを今回の修正カラムとして昇格する
+            if next_missingdata_colmun:
+                missingdata_colmun = next_missingdata_colmun
+        return missingdata_colmun, next_missingdata_colmun
 
-    # DMチャンネルにメッセージが送られた時
+    def select_nextquestionmsg(self, next_missingdata_colmun):
+        if next_missingdata_colmun == "nickname":
+            next_msg = self.question1
+        elif next_missingdata_colmun == "sex":
+            next_msg = f"""\> 性別を教えて下さい。\n{self.question2}"""  # noqa: W605
+        elif next_missingdata_colmun == "twitter_id":
+            next_msg = self.question3
+        elif next_missingdata_colmun == "specialty":
+            next_msg = self.question4
+        elif next_missingdata_colmun == "before_study":
+            next_msg = self.question5
+        elif next_missingdata_colmun == "after_study":
+            next_msg = self.question6
+        elif next_missingdata_colmun == "sendmsg_id":
+            next_msg = "これで質問は終了です"
+        return next_msg
+
+    async def check_msg_content(self, dm, missingdata_colmun, msg_cont):
+        """
+        データの値を判定し、想定通りでなければエラーを出す
+
+        future: データが想定通りじゃない場合は、適当な値に修正する処理も追加したい
+            例えば、
+            TwitterIDが英数字記号以外が含まれていた場合は一律"not_account"にするなど
+        """
+        check_msg = True
+        if msg_cont == "":
+            await dm.send(embed=self.strfembed("自己紹介の編集中です\n文字列を送信してください"))
+            check_msg = False
+        else:
+            if missingdata_colmun == "sex":
+                if msg_cont not in ["男", "女", "非公開"]:
+                    check_msg = False
+        return check_msg
 
     @commands.Cog.listener()
     @commands.dm_only()
@@ -115,109 +162,33 @@ class Self_Introduction(commands.Cog):
         if message.author.bot:
             return
         dm = await message.author.create_dm()
-        if message.content == "":
-            await dm.send(embed=self.strfembed("""\
-自己紹介の編集中です
-文字列を送信してください"""))
+        # 受信したメッセージの内容をどのカラムに保存するかを確認
+        # 次不足しているデータの確認
+        missingdata_colmun, next_missingdata_colmun = self.check_missingdata()
+        # データのチェック
+        check_msg = await self.check_msg_content(dm, missingdata_colmun,
+                                                 message.content)
+        if check_msg:
             return
-        for channel in self.DEBUG_GUILD.text_channels:
-            # DEBUGサーバーからメッセージ送信者のidと同じ名前のTextChannelを見つける
-            if channel.name == str(message.author.id):
-                # channelを見つけたらそのチャンネル内の合計メッセージ数を取得する
-                count = await self.get_count(channel)
-                # メッセージ数が0の時の処理(名前が格納される)
-                if count == 0:
-                    await self.send_message(channel,
-                                            message.channel,
-                                            message.content,
-                                            f"""\> 性別を教えて下さい。\n{self.question2}""")  # noqa: W605,E501
-                    break
-                # メッセージ数が1の時(性別が格納される)
-                elif count == 1:
-                    if message.content in ["男", "女", "非公開"]:
-                        await self.send_message(channel,
-                                                message.channel,
-                                                message.content,
-                                                self.question3)
-                    else:
-                        await message.channel.send(self.question2)
-                    break
-                # メッセージ数が2の時(TwitterIDが格納される)
-                elif count == 2:
-                    await self.send_message(channel,
-                                            message.channel,
-                                            message.content,
-                                            self.question4)
-                    break
-                # メッセージ数が3の時(得意分野が格納される)
-                elif count == 3:
-                    await self.send_message(channel,
-                                            message.channel,
-                                            message.content,
-                                            self.question5)
-                    break
-                # メッセージ数が4の時(今まで勉強してきたことが格納される)
-                elif count == 4:
-                    await self.send_message(channel,
-                                            message.channel,
-                                            message.content,
-                                            self.question6)
-                    break
-                # メッセージ数が5の時(これから勉強していきたいことが格納される)
-                elif count == 5:
-                    await self.send_message(channel,
-                                            message.channel,
-                                            message.content,
-                                            "これで質問は終了です")
-                    await self.complete(channel,
-                                        message.author.id)
-                    break
-                elif count == 6:
-                    await self.complete(channel,
-                                        message.author.id)
-                    break
-                # メッセージ数が7の時
-                elif count == 7:
-                    await message.channel.send(embed=self.strfembed(f"""\
-{message.author.name}さんの自己紹介文は既に登録済みです。
-変更する場合は、[ ¥predit ]とコマンドを送信して下さい"""))
-                    break
-                # メッセージ数が8の時、最新メッセージに書かれたメッセージIDの内容を修正
-                elif count == 8:
-                    messages = await channel.history(limit=None).flatten()
-                    # messages[0]: 修正対象のIDをmessage.contentに格納したメッセージ
-                    # messages[0].content: 修正する対象のメッセージID
-                    # messages[1]: mo9mo9ギルドに送信したメッセージIDをmessage.contentに格納したメッセージ # noqa: E501
-                    # messages[1].content: mo9mo9ギルドに送信された自己紹介メッセージのID
-                    edit_message = await channel.fetch_message(int(messages[0].content))  # noqa: E501
-                    # mo9mo9ギルドに送信した自己紹介メッセージを示すメッセージオブジェクト
-                    selfintroduction_message = await self.INTRODUCTION_CHANNEL.fetch_message(int(messages[1].content))  # noqa: E501
-
-                    # 編集対象のメッセージ内容を修正する
-                    await edit_message.edit(content=message.content)
-                    # 8個目の編集対象を示すメッセージオブジェクト削除
-                    await messages[0].delete()
-                    await selfintroduction_message.delete()
-                    await messages[1].delete()
-                    # 完成した自己紹介を送信する
-                    print(message)
-                    await self.complete(channel, message.author.id)
-                    break
-                else:
-                    print(
-                        f"{message.author.id}のメッセージの取得数が想定外です： (取得数: {count})")  # noqa: E501
-                    break
-        # DEBUGサーバー内にメッセージ送信者のチャンネルが見つからなかったときに
-        # TextChanenlを作成する
-        else:
-            await self.DEBUG_GUILD.create_text_channel(str(message.author.id))  # noqa: E501
-            await message.channel.send("""\
-自己紹介文が見つかりませんでした。
-質問に答えると自己紹介が登録できます。""")
-            await message.channel.send(self.question1)
+        # 後ほど
+        # 不足しているデータをDBに書き込み
+        self.db_update_selfintroduction(missingdata_colmun, message.content,
+                                        next_missingdata_colmun)
+        # 不足しているデータから次の送信メッセージを選択
+        send_msg = self.select_nextquestionmsg(next_missingdata_colmun)
+        await dm.send(embed=self.strfembed(send_msg))
+        # データに不足がない場合
+        if not missingdata_colmun and not next_missingdata_colmun:
+            comp_msg = f"{message.author.name}さんの自己紹介文は既に登録済みです。"\
+                + "\n変更する場合は、[ ¥predit ]とコマンドを送信して下さい。"
+            await message.channel.send(embed=self.strfembed(comp_msg))
+            return
+        # メッセージを勉強ギルドに送信する処理
+        # ここ続けて書く必要あり
 
     # ---on_messageイベント内でのみ呼び出される---
     # channelとdmにメッセージを送信するメソッド
+
     async def send_message(self, channel, dm, msgcontent, content):
         await channel.send(msgcontent)
         await dm.send(embed=self.strfembed(content))
