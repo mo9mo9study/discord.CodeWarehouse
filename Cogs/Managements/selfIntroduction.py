@@ -234,7 +234,6 @@ class Self_Introduction(commands.Cog):
                                                  message.content)
         if check_msg:
             return
-        # 後ほど
         # 不足しているデータをDBに書き込み
         self.db_update_selfintroduction(member, missingdata_column,
                                         message.content,
@@ -242,8 +241,8 @@ class Self_Introduction(commands.Cog):
         # 不足しているデータから次の送信メッセージを選択
         send_msg = self.select_nextquestionmsg(next_missingdata_column)
         await dm.send(embed=self.strfembed(send_msg))
-        # データに不足がない場合
         if not missingdata_column and not next_missingdata_column:
+            # データに不足がない場合
             comp_msg = f"{message.author.name}さんの自己紹介文は既に登録済みです。"\
                 + "\n変更する場合は、[ ¥predit ]とコマンドを送信して下さい。"
             await message.channel.send(embed=self.strfembed(comp_msg))
@@ -251,10 +250,57 @@ class Self_Introduction(commands.Cog):
         # メッセージを勉強ギルドに送信する処理
         # ここ続けて書く必要あり
 
-    # ---on_messageイベント内でのみ呼び出される---
-    # channelとdmにメッセージを送信するメソッド
+    async def send_selfintroduction(self, member) -> None:
+        """
+        DBに補完された自己紹介データをEmbedの形に入れ込み、自己紹介を送信する
+
+        Parameter
+        ---------
+        member : discord.Member
+            message.authorから取得したメンバーオブジェクト
+        """
+        dm = await member.create_dm()
+        embed = self.add_embed(member)
+        # 完成した自己紹介文の最終チェック(修正が可能)
+        embed_message = await dm.send(embed=embed)
+        send_msg = "この内容で自己紹介を登録しますか？"\
+            + "OKなら👍リアクションを、修正する場合は♻️リアクションを押して下さい。"\
+            + "部分的に修正する場合は一度👍リアクションを押して投稿した後に修正可能になります"  # noqa: E501
+        await dm.send(embed=self.strfembed(send_msg))
+        # リアクションを追加
+        await embed_message.add_reaction("👍")
+        await embed_message.add_reaction("♻️")
+        # 押されたemojiを取得
+        emoji = await self.wait_reaction_add(embed_message, ["👍", "♻️"])
+        # 押された絵文字が👍の時(今の内容で登録する)
+        if emoji == "👍":
+            after_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
+            await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
+            # DBの自己紹介メッセージIDを送信後のメッセージIDに変更
+            await self.db_update_selfintroduction(member, "sendmsg_id",
+                                                  after_msg.id, None)
+            send_msg2 = "登録が完了しました" \
+                + "※登録した自己紹介を修正したい場合は[ ¥predit ]とコマンドを送信してください"   # noqa: E501
+            await dm.send(embed=self.strfembed(send_msg2))
+        elif emoji == "♻️":
+            await self.selfintroduction_reset(dm)
+
+    async def selfintroduction_msg_update(self, member):
+        member_data = self.db_select_selfintroduction(member)
+        channel = self.INTRODUCTION_CHANNEL
+        msg_id = member_data["sendmsg_id"]
+        if msg_id:
+            # 既存の自己紹介メッセージを削除
+            selfintroduction_msg = await channel.fetch_message(msg_id)
+            await selfintroduction_msg.delete()
+        # 完成した自己紹介を送信
+        await self.send_selfintroduction(member)
 
     async def send_message(self, channel, dm, msgcontent, content):
+        """
+        ---on_messageイベント内でのみ呼び出される---
+        channelとdmにメッセージを送信するメソッド
+        """
         await channel.send(msgcontent)
         await dm.send(embed=self.strfembed(content))
 
@@ -271,9 +317,8 @@ class Self_Introduction(commands.Cog):
         # dmオブジェクト作成
         dm = await member.create_dm()
         # 格納されたメッセージをすべて取得
-        messages = await channel.history(limit=None).flatten()
         # embedにして整形
-        embed = self.add_embed(self.adjust(messages), member)
+        embed = self.add_embed(member)
         # 完成した自己紹介文の最終チェック(修正が可能)
         embed_message = await dm.send(embed=embed)
         await dm.send(embed=self.strfembed("""\
@@ -291,11 +336,11 @@ OKなら👍リアクションを、修正する場合は♻️リアクショ�
             register_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
             await register_msg.add_reaction("<:yoroshiku:761730298106478592>")
             await channel.send(register_msg.id)
-            await dm.send(embed=self.strfembed("""\
-登録が完了しました
-※登録した自己紹介を修正したい場合は[ ¥predit ]とコマンドを送信してください"""))
+            send_msg2 = "登録が完了しました" \
+                + "※登録した自己紹介を修正したい場合は[ ¥predit ]とコマンドを送信してください"  # noqa: E501
+            await dm.send(embed=self.strfembed(send_msg2))
         elif emoji == "♻️":
-            await self.selfintroduction_reset(channel, dm)
+            await self.selfintroduction_reset(dm)
 
     # 自己紹介を初期化する処理
     async def selfintroduction_reset(self, dm) -> None:
@@ -336,28 +381,27 @@ OKなら👍リアクションを、修正する場合は♻️リアクショ�
         return embed
 
     # 質問内容を追加する場合は、ここを弄る
-    def add_embed(self, list, member):
+    def add_embed(self, member):
+        obj = self.db_select_selfintroduction(member)
         embed = discord.Embed(
             title="自己紹介",
-            description=f"""\
-name: {member.name}
-joined: {str(member.joined_at.strftime('%Y-%m-%d'))}""",
-            color=self.gender_color(list[1]))
+            description=f"name: {member.name}\njoined: {str(member.joined_at.strftime('%Y-%m-%d'))}",  # noqa: E501
+            color=self.gender_color(obj['sex']))
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="【 __呼び名__ 】",
-                        value=f":name_badge: {list[0]}",
+                        value=f":name_badge: {obj['nickname']}",
                         inline=False)
         embed.add_field(name="【 __TwitterID__ 】",
-                        value=f":globe_with_meridians: @{list[2]}",
+                        value=f":globe_with_meridians: @{obj['twitter_id']}",
                         inline=False)
         embed.add_field(name="【 __得意分野__ 】",
-                        value=f":ideograph_advantage: {list[3]}",
+                        value=f":ideograph_advantage: {obj['specialty']}",
                         inline=False)
         embed.add_field(name="【 __今まで勉強してきたこと__ 】",
-                        value=f":books: {list[4]}",
+                        value=f":books: {obj['before_study']}",
                         inline=False)
         embed.add_field(name="【 __これから勉強していきたいこと__ 】",
-                        value=f":pencil: {list[5]}",
+                        value=f":pencil: {obj['after_study']}",
                         inline=False)
         embed.set_footer(text=f"{member.id}")
         return embed
@@ -384,13 +428,22 @@ joined: {str(member.joined_at.strftime('%Y-%m-%d'))}""",
 
     # ---completeメソッド内でのみ呼び出される---
     # リアクションが押されたら、そのリアクションをreturnする
-    async def wait_reaction_add(self, channel, message, emojis):
-        # リアクションを押したユーザーがbotじゃなく、
-        # 押された絵文字がemojisに格納されている絵文字あり、
-        # リアクションを押したメッセージのidが送信されたembedメッセージのidと同じで、
-        # リアクションを押したユーザーのidとDEBUGサーバー内のchannel名が一致した場合のみ、処理が走る
+    async def wait_reaction_add(self, message, emojis):
+        """
+        リアクションを押したユーザーがbotじゃなく、
+        押された絵文字がemojisに格納されている絵文字あり、
+        リアクションを押したメッセージのidが送信されたembedメッセージのidと同じで、
+        リアクションを押したユーザーのidとDEBUGサーバー内のchannel名が一致した場合のみ、処理が走る
+
+        Parameter
+        ---------
+        message : discord.Message
+            自己紹介完成後の送信前の確認用のembedメッセージオブジェクト
+        emojis : list
+            確認用のembedメッセージに付与されて処理を通す絵文字の一覧
+        """
         def check(reaction, user):
-            return user.bot is False and reaction.emoji in emojis and reaction.message.id == message.id and str(user.id) == channel.name  # noqa: E501
+            return user.bot is False and reaction.emoji in emojis and reaction.message.id == message.id  # noqa: E501
         reaction, user = await self.bot.wait_for('reaction_add', check=check)
         # リアクションが押されたら、押されたリアクションをreturnする
         if reaction.emoji in emojis:
