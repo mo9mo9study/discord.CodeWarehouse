@@ -10,7 +10,7 @@ class Self_Introduction(commands.Cog):
         self.bot = bot
         self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
         self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
-        self.DEBUG_GUILD_ID = 795337147149189148  # DEBUGサーバーのID ※変更不可
+        self.LOG_CHANNEL_ID = 801060150433153054
         self.emoji_number = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         # 以下、質問６項目
         self.question1 = "\> 呼び名を教えてください"  # noqa: W605
@@ -27,21 +27,31 @@ class Self_Introduction(commands.Cog):
         self.GUILD = self.bot.get_guild(self.GUILD_ID)
         self.INTRODUCTION_CHANNEL = self.GUILD.get_channel(
             self.INTRODUCTION_CHANNEL_ID)
-        self.DEBUG_GUILD = self.bot.get_guild(self.DEBUG_GUILD_ID)
+        self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
         # 全てのパラメータが埋まっている状態で、まだ自己紹介を送信していない場合
+        # 後ほど必要になるだろう処理
+
         # 再度確認用のメッセージをDMに送る処理追加
-        guild = self.bot.get_guild(self.GUILD_ID)
-        for channel in self.DEBUG_GUILD.text_channels:
-            count = await self.get_count(channel)
-            if count == 6:
-                member = guild.get_member(
-                    int(channel.name))
-                print(f"自己紹介を送信していないユーザー: {member}/{channel}")
-                if member is None:
-                    return
-                await self.complete(channel, member.id)
+        # for channel in self.DEBUG_GUILD.text_channels:
+        #     count = await self.get_count(channel)
+        #     if count == 6:
+        #         member = guild.get_member(
+        #             int(channel.name))
+        #         print(f"自己紹介を送信していないユーザー: {member}/{channel}")
+        #         if member is None:
+        #             return
+        #         await self.complete(channel, member.id)
 
     async def db_insert_selfintroduction(self, member):
+        """
+        メンバー参加時、その他レコードが存在しない時に対象メンバーのレコードを作成
+        ギルドID,メンバーID,次修正するカラムに"nickname"を挿入する
+
+        Parameter
+        ---------
+        member : discord.Member
+            message.authorから取得したメンバーオブジェクト
+        """
         obj = Selfintroduction(
             guild_id=member.guild.id,
             member_id=member.id,
@@ -246,6 +256,8 @@ class Self_Introduction(commands.Cog):
             send_msg2 = "登録が完了しました" \
                 + "※登録した自己紹介を修正したい場合は[ ¥predit ]のコマンド(7文字)を送信してください"   # noqa: E501
             await dm.send(embed=self.strfembed(send_msg2))
+            log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
+            await self.LOG_CHANNEL.send(log_msg)
         elif emoji == "♻️":
             await self.selfintroduction_reset(dm)
 
@@ -277,45 +289,6 @@ class Self_Introduction(commands.Cog):
         await channel.send(msgcontent)
         await dm.send(embed=self.strfembed(content))
 
-    # # ---on_messageイベント内でのみ呼び出される---
-    # # チャンネル内のメッセージ総数を取得し、returnする
-    # async def get_count(self, channel):
-    #     messages = await channel.history(limit=None).flatten()
-    #     return len(messages)
-
-#     # ---全ての質問に答えたときに呼び出される---
-#     async def complete(self, channel, member_id):
-#         member = self.GUILD.get_member(member_id)
-#         print(f"complete: {member}")
-#         # dmオブジェクト作成
-#         dm = await member.create_dm()
-#         # 格納されたメッセージをすべて取得
-#         # embedにして整形
-#         embed = self.add_embed(member)
-#         # 完成した自己紹介文の最終チェック(修正が可能)
-#         embed_message = await dm.send(embed=embed)
-#         senf_msg =
-#         await dm.send(embed=self.strfembed("""\
-# この内容で自己紹介を登録しますか？
-# OKなら👍リアクションを、修正する場合は♻️リアクションを押して下さい。
-# 部分的に修正する場合は一度👍リアクションを押して投稿した後に修正可能になります"""))
-#         # リアクションを追加
-#         await embed_message.add_reaction("👍")
-#         await embed_message.add_reaction("♻️")
-#         # 押されたemojiを取得
-#         emoji = await self.wait_reaction_add(channel,
-#                                              embed_message, ["👍", "♻️"])
-#         # 押された絵文字が👍の時(今の内容で登録する)
-#         if emoji == "👍":
-#             register_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
-#             await register_msg.add_reaction("<:yoroshiku:761730298106478592>")  # noqa: E501
-#             await channel.send(register_msg.id)
-#             send_msg2 = "登録が完了しました" \
-#                 + "※登録した自己紹介を修正したい場合は[ ¥predit ]とコマンドを送信してください"  # noqa: E501
-#             await dm.send(embed=self.strfembed(send_msg2))
-#         elif emoji == "♻️":
-#             await self.selfintroduction_reset(dm)
-
     # 自己紹介を初期化する処理
     async def selfintroduction_reset(self, dm) -> None:
         """
@@ -334,7 +307,7 @@ class Self_Introduction(commands.Cog):
         self.db_reset_selfintroduction(member)
         await dm.send(embed=self.strfembed(self.question1))
 
-    def strfembed(self, str):
+    def strfembed(self, str) -> discord.Embed:
         """
         ---completeメソッド内でのみ呼び出される---
         文字列をembedに変換する処理
@@ -353,7 +326,7 @@ class Self_Introduction(commands.Cog):
         return embed
 
     # 質問内容を追加する場合は、ここを弄る
-    def add_embed(self, member):
+    def add_embed(self, member) -> discord.Embed:
         """
         自己紹介メッセージを作成するテンプレート
         DBから自己紹介データを取得し、
@@ -393,22 +366,26 @@ class Self_Introduction(commands.Cog):
         embed.set_footer(text=f"{member.id}")
         return embed
 
-    # ---add_embedメソッド内でのみ呼び出される---
-    # 入力された性別によって、embedのカラーを変える
-    def gender_color(self, gender):
+    def gender_color(self, gender) -> int:
+        """
+        入力された性別によって、embedのカラーを変える
+
+        Parameter
+        ---------
+        gender : str
+            メンバーが指定した性別を格納している
+
+        Return
+        ------
+        int
+            16進数のカラーコード
+        """
         if gender in "男":
             return 0x4093cf
         elif gender in "女":
             return 0xba3fb4
         elif gender in "非公開":
             return 0x51c447
-
-    # # ---completeメソッド内でのみ呼び出される---
-    # # channel内のメッセージlistの並びを逆にし、
-    # # disocrd.Messageオブジェクトじゃなくdiscord.Message.Contentを格納
-    # def adjust(self, messages):
-    #     messages.reverse()
-    #     return list(map(lambda messages: messages.content, messages))
 
     def messages_id(self, messages):
         return list(map(lambda messages: messages.id, messages))
@@ -438,11 +415,11 @@ class Self_Introduction(commands.Cog):
 
     def current_setting(self, member, number):
         obj = self.db_select_selfintroduction(member)
-        desc = f"修正したい項目があればこのメッセージに付与されたリアクション（{number[0]}〜{number[4]}）を押してください"  # noqa: E501
+        desc = f"修正したい項目があればこのメッセージに付与されたリアクション（{number[0]}〜{number[-1]}）を押してください"  # noqa: E501
         embed = discord.Embed(
             title="現在自己紹介を修正",
             description=desc,
-            color=self.gender_color(list[1]))
+            color=self.gender_color(obj['sex']))
         embed.add_field(name=f"{number[0]}",
                         value=obj['nickname'], inline=False)
         embed.add_field(name=f"{number[1]}", value=obj['sex'], inline=False)
