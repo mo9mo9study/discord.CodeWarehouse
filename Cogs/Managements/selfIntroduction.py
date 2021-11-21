@@ -8,9 +8,13 @@ class Self_Introduction(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
-        self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
-        self.LOG_CHANNEL_ID = 801060150433153054
+        # self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
+        # self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
+        # self.LOG_CHANNEL_ID = 801060150433153054
+        self.GUILD_ID = 696268022930866177
+        self.INTRODUCTION_CHANNEL_ID = 909813699072643092
+        self.LOG_CHANNEL_ID = 909813908699754516
+
         self.emoji_number = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         # 以下、質問６項目
         self.question1 = "\> 呼び名を教えてください"  # noqa: W605
@@ -42,7 +46,7 @@ class Self_Introduction(commands.Cog):
         #             return
         #         await self.complete(channel, member.id)
 
-    async def db_insert_selfintroduction(self, member):
+    async def db_insert_selfintroduction(self, session, member):
         """
         メンバー参加時、その他レコードが存在しない時に対象メンバーのレコードを作成
         ギルドID,メンバーID,次修正するカラムに"nickname"を挿入する
@@ -52,12 +56,15 @@ class Self_Introduction(commands.Cog):
         member : discord.Member
             message.authorから取得したメンバーオブジェクト
         """
-        obj = Selfintroduction(
-            guild_id=member.guild.id,
-            member_id=member.id,
-            mod_column="nickname"
-        )
-        Selfintroduction.insert(obj)
+        member_data = self.db_select_selfintroduction(session, member)
+        if not member_data:
+            # メンバーのレコードが存在しなければ作成する
+            obj = Selfintroduction(
+                guild_id=member.guild.id,
+                member_id=member.id,
+                mod_column="nickname"
+            )
+            Selfintroduction.insert(obj)
 
     # サーバーにメンバーが参加した時
     @commands.Cog.listener()
@@ -71,10 +78,12 @@ class Self_Introduction(commands.Cog):
         # selfintroductionテーブルに参加したメンバーの情報をinsert
         await self.db_insert_selfintroduction(member)
         # 参加者にdmを送る
-        await dm.send(embed=self.strfembed("ギルドへの参加ありがとうございます\nこれから自己紹介の処理を進めますので、質問に答えて下さい"))  # noqa: E501
+        send_msg = "ギルドへの参加ありがとうございます"\
+            + "\nこれから自己紹介の処理を進めますので、質問に答えて下さい"
+        await dm.send(embed=self.strfembed(send_msg))  # noqa: E501
         await dm.send(embed=self.strfembed(self.question1))
 
-    def db_select_selfintroduction(self, member):
+    def db_select_selfintroduction(self, session, member):
         """
         対象メンバーの自己紹介データを取得する
 
@@ -83,13 +92,13 @@ class Self_Introduction(commands.Cog):
         member : discord.Member
             message.authorから取得したメンバーオブジェクト
         """
-        session = Selfintroduction.session()
+        # session = Selfintroduction.session()
         obj = Selfintroduction.objects(session).filter(
             Selfintroduction.member_id == member.id,
             Selfintroduction.guild_id == member.guild.id).first()
         return obj
 
-    def db_reset_selfintroduction(self, member) -> None:
+    def db_reset_selfintroduction(self, session, member) -> None:
         """
         対象メンバーの自己紹介データのメンバーが対話式でデータを挿入できるカラムを初期化
 
@@ -98,19 +107,18 @@ class Self_Introduction(commands.Cog):
         member : discord.Member
             message.authorから取得したメンバーオブジェクト
         """
-        session = Selfintroduction.session()
-        obj = Selfintroduction.objects(session).filter(
-            Selfintroduction.member_id == member.id,
-            Selfintroduction.guild_id == member.guild.id).first()
+        # session = Selfintroduction.session()
+        obj = self.db_select_selfintroduction(session, member)
         reset_columns = ["nickname", "sex", "twitter_id", "specialty",
                          "before_study", "after_study"]
         for column in reset_columns:
-            obj[column] = None
-        obj["mod_column"] = "nickname"
-        obj.commit()
+            setattr(obj, column, None)
+        obj.mod_column = "nickname"
+        session.add(obj)
+        session.flush()
 
-    def db_update_selfintroduction(self, member, select_column, after_value,
-                                   next_mod_column) -> None:
+    def db_update_selfintroduction(self, session, member, select_column,
+                                   after_value, next_mod_column) -> None:
         """
         カラムを指定して自己紹介データを修正する
 
@@ -123,13 +131,24 @@ class Self_Introduction(commands.Cog):
         next_mod_column : str
             カラム名[mod_column]に保存される、次修正対象となるカラム名
         """
-        obj = self.db_select_selfintroduction(member)
-        obj[select_column] = after_value
-        if next_mod_column:
-            obj["mod_column"] = next_mod_column
-        obj.commit()
+        # session = Selfintroduction.session()
+        obj = self.db_select_selfintroduction(session, member)
+        # obj(bind=session)
+        setattr(obj, select_column, after_value)
+        if select_column != "mod_column":
+            # 変更するカラムが"mod_column"以外の時
+            if next_mod_column:
+                # next_mod_columnに値が含まれている時
+                obj.mod_column = next_mod_column
+            else:
+                # 自己紹介送信時にmod_columnをNoneにするため
+                obj.mod_column = None
+        session.add(obj)
+        # session.flush()
+        session.commit()
+        print("[DEBUG] commit")
 
-    def check_missingdata(self, member) -> str:
+    def check_missingdata(self, session, member) -> str:
         """
         DBからメンバーの自己紹介情報を取得し、現在の処理で受け取ったメッセージ内容を
         どのカラムに保存するかをかをmod_columnから確認する
@@ -142,27 +161,28 @@ class Self_Introduction(commands.Cog):
         next_missingdata_column : str, None
             今回の処理が正常に完了した場合、次に修正するカラム名
         """
-        member_data = self.db_select_selfintroduction(member)
+        member_data = self.db_select_selfintroduction(session, member)
+        m_d = member_data
         missingdata_column = None
         next_missingdata_column = None
         # 次修正するカラムを確認
-        if not member_data["nickname"]:
+        if not m_d.nickname and m_d.mod_column != "nickname":
             next_missingdata_column = "nickname"
-        elif not member_data["sex"]:
+        elif not m_d.sex and m_d.mod_column != "sex":
             next_missingdata_column = "sex"
-        elif not member_data["twitter_id"]:
+        elif not m_d.twitter_id and m_d.mod_column != "twitter_id":
             next_missingdata_column = "twitter_id"
-        elif not member_data["specialty"]:
+        elif not m_d.specialty and m_d.mod_column != "specialty":
             next_missingdata_column = "specialty"
-        elif not member_data["before_study"]:
+        elif not m_d.before_study and m_d.mod_column != "before_study":
             next_missingdata_column = "before_study"
-        elif not member_data["after_study"]:
+        elif not m_d.after_study and m_d.mod_column != "after_study":
             next_missingdata_column = "after_study"
-        elif not member_data["sendmsg_id"]:
+        elif not m_d.sendmsg_id and m_d.mod_column != "sendmsg_id":
             next_missingdata_column = "sendmsg_id"
         # 今回修正するカラムを確認
-        if member_data["mod_column"]:
-            missingdata_column = member_data["mod_column"]
+        if m_d.mod_column:
+            missingdata_column = m_d.mod_column
         else:
             # mod_columnには修正するカラムの指定はないが
             # 不足しているデータがあった場合
@@ -199,6 +219,8 @@ class Self_Introduction(commands.Cog):
             next_msg = self.question6
         elif next_missingdata_column == "sendmsg_id":
             next_msg = "これで質問は終了です"
+        elif not next_missingdata_column:
+            next_msg = "これで質問は終了です"
         return next_msg
 
     async def check_msg_content(self, dm, missingdata_column, msg_cont) -> bool:  # noqa: E501
@@ -216,7 +238,8 @@ class Self_Introduction(commands.Cog):
         """
         check_msg = True
         if msg_cont == "":
-            await dm.send(embed=self.strfembed("自己紹介の編集中です\n文字列を送信してください"))
+            send_msg = "自己紹介の編集中です\n文字列を送信してください"
+            await dm.send(embed=self.strfembed(send_msg))
             check_msg = False
         else:
             if missingdata_column == "sex":
@@ -224,7 +247,7 @@ class Self_Introduction(commands.Cog):
                     check_msg = False
         return check_msg
 
-    async def send_selfintroduction(self, member) -> None:
+    async def send_selfintroduction(self, session, member) -> None:
         """
         DBに補完された自己紹介データをEmbedの形に入れ込み、自己紹介を送信する
 
@@ -234,12 +257,12 @@ class Self_Introduction(commands.Cog):
             message.authorから取得したメンバーオブジェクト
         """
         dm = await member.create_dm()
-        embed = self.add_embed(member)
+        embed = self.add_embed(session, member)
         # 完成した自己紹介文の最終チェック(修正が可能)
         embed_message = await dm.send(embed=embed)
         send_msg = "この内容で自己紹介を登録しますか？"\
-            + "OKなら👍リアクションを、修正する場合は♻️リアクションを押して下さい。"\
-            + "部分的に修正する場合は一度👍リアクションを押して投稿した後に修正可能になります"  # noqa: E501
+            + "\nOKなら👍リアクションを、修正する場合は♻️リアクションを押して下さい。"\
+            + "\n部分的に修正する場合は一度👍リアクションを押して投稿した後に修正可能になります"  # noqa: E501
         await dm.send(embed=self.strfembed(send_msg))
         # リアクションを追加
         await embed_message.add_reaction("👍")
@@ -249,19 +272,19 @@ class Self_Introduction(commands.Cog):
         # 押された絵文字が👍の時(今の内容で登録する)
         if emoji == "👍":
             after_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
-            await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
-            # DBの自己紹介メッセージIDを送信後のメッセージIDに変更
-            await self.db_update_selfintroduction(member, "sendmsg_id",
-                                                  after_msg.id, None)
+            # await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
             send_msg2 = "登録が完了しました" \
-                + "※登録した自己紹介を修正したい場合は[ ¥predit ]のコマンド(7文字)を送信してください"   # noqa: E501
+                + "\n※登録した自己紹介を修正したい場合は[ ¥predit ]のコマンド(7文字)を送信してください"   # noqa: E501
             await dm.send(embed=self.strfembed(send_msg2))
             log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
+            # 送信先のメッセージのIDをDBに保存
+            self.db_update_selfintroduction(session, member, "sendmsg_id",
+                                            after_msg.id, None)
             await self.LOG_CHANNEL.send(log_msg)
         elif emoji == "♻️":
-            await self.selfintroduction_reset(dm)
+            await self.selfintroduction_reset(session, member, dm)
 
-    async def selfintroduction_msg_update(self, member):
+    async def selfintroduction_msg_update(self, session, member):
         """
         既存の自己紹介メッセージが存在する場合は削除し、
         データ更新後の自己紹介メッセージを送信する
@@ -271,15 +294,16 @@ class Self_Introduction(commands.Cog):
         member : discord.Member
             message.authorから取得したメンバーオブジェクト
         """
-        member_data = self.db_select_selfintroduction(member)
+        member_data = self.db_select_selfintroduction(session, member)
         channel = self.INTRODUCTION_CHANNEL
-        msg_id = member_data["sendmsg_id"]
+        msg_id = member_data.sendmsg_id
         if msg_id:
-            # 既存の自己紹介メッセージを削除
-            selfintroduction_msg = await channel.fetch_message(msg_id)
-            await selfintroduction_msg.delete()
+            if msg_id.isdecimal():
+                # 既存の自己紹介メッセージを削除
+                selfintroduction_msg = await channel.fetch_message(int(msg_id))
+                await selfintroduction_msg.delete()
         # 完成した自己紹介を送信
-        await self.send_selfintroduction(member)
+        await self.send_selfintroduction(session, member)
 
     async def send_message(self, channel, dm, msgcontent, content):
         """
@@ -290,7 +314,7 @@ class Self_Introduction(commands.Cog):
         await dm.send(embed=self.strfembed(content))
 
     # 自己紹介を初期化する処理
-    async def selfintroduction_reset(self, dm) -> None:
+    async def selfintroduction_reset(self, session, member, dm) -> None:
         """
         DBの自己紹介データを初期化する処理
         ギルド・メンバーID、自己紹介が送信済みなら送信済みのカラムは変更しない
@@ -303,8 +327,7 @@ class Self_Introduction(commands.Cog):
         """
         await dm.send(embed=self.strfembed("内容を全てリセットします"))
         # TextChannelを再度作成し直し、リセットする
-        member = self.GUILD.get_member(dm.me.id)
-        self.db_reset_selfintroduction(member)
+        self.db_reset_selfintroduction(session, member)
         await dm.send(embed=self.strfembed(self.question1))
 
     def strfembed(self, str) -> discord.Embed:
@@ -326,7 +349,7 @@ class Self_Introduction(commands.Cog):
         return embed
 
     # 質問内容を追加する場合は、ここを弄る
-    def add_embed(self, member) -> discord.Embed:
+    def add_embed(self, session, member) -> discord.Embed:
         """
         自己紹介メッセージを作成するテンプレート
         DBから自己紹介データを取得し、
@@ -342,26 +365,28 @@ class Self_Introduction(commands.Cog):
         embed : discord.Embed
             自己紹介メッセージの完成版のembedオブジェクト
         """
-        obj = self.db_select_selfintroduction(member)
+        obj = self.db_select_selfintroduction(session, member)
+        desc_msg = f"name: {member.name}"\
+            + f"\njoined: {str(member.joined_at.strftime('%Y-%m-%d'))}"
         embed = discord.Embed(
             title="自己紹介",
-            description=f"name: {member.name}\njoined: {str(member.joined_at.strftime('%Y-%m-%d'))}",  # noqa: E501
-            color=self.gender_color(obj['sex']))
+            description=desc_msg,  # noqa: E501
+            color=self.gender_color(obj.sex))
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="【 __呼び名__ 】",
-                        value=f":name_badge: {obj['nickname']}",
+                        value=f":name_badge: {obj.nickname}",
                         inline=False)
         embed.add_field(name="【 __TwitterID__ 】",
-                        value=f":globe_with_meridians: @{obj['twitter_id']}",
+                        value=f":globe_with_meridians: @{obj.twitter_id}",
                         inline=False)
         embed.add_field(name="【 __得意分野__ 】",
-                        value=f":ideograph_advantage: {obj['specialty']}",
+                        value=f":ideograph_advantage: {obj.specialty}",
                         inline=False)
         embed.add_field(name="【 __今まで勉強してきたこと__ 】",
-                        value=f":books: {obj['before_study']}",
+                        value=f":books: {obj.before_study}",
                         inline=False)
         embed.add_field(name="【 __これから勉強していきたいこと__ 】",
-                        value=f":pencil: {obj['after_study']}",
+                        value=f":pencil: {obj.after_study}",
                         inline=False)
         embed.set_footer(text=f"{member.id}")
         return embed
@@ -413,31 +438,31 @@ class Self_Introduction(commands.Cog):
         if reaction.emoji in emojis:
             return reaction.emoji
 
-    def current_setting(self, member, number):
-        obj = self.db_select_selfintroduction(member)
+    def current_setting(self, session, member, number):
+        obj = self.db_select_selfintroduction(session, member)
         desc = f"修正したい項目があればこのメッセージに付与されたリアクション（{number[0]}〜{number[-1]}）を押してください"  # noqa: E501
         embed = discord.Embed(
             title="現在自己紹介を修正",
             description=desc,
-            color=self.gender_color(obj['sex']))
+            color=self.gender_color(obj.sex))
         embed.add_field(name=f"{number[0]}",
-                        value=obj['nickname'], inline=False)
-        embed.add_field(name=f"{number[1]}", value=obj['sex'], inline=False)
+                        value=obj.nickname, inline=False)
+        embed.add_field(name=f"{number[1]}", value=obj.sex, inline=False)
         embed.add_field(name=f"{number[2]}",
-                        value=obj['twitter_id'], inline=False)
+                        value=obj.twitter_id, inline=False)
         embed.add_field(name=f"{number[3]}",
-                        value=obj['specialty'], inline=False)
+                        value=obj.specialty, inline=False)
         embed.add_field(name=f"{number[4]}",
-                        value=obj['before_study'], inline=False)
+                        value=obj.before_study, inline=False)
         embed.add_field(name=f"{number[5]}",
-                        value=obj['after_study'], inline=False)
+                        value=obj.after_study, inline=False)
         embed.add_field(
             name="♻️",
             value="初期化してもう一度初めから自己紹介を作成する場合",
             inline=False)
         return embed
 
-    def emoji_mod_column(self, member, emoji):
+    def emoji_mod_column(self, session, member, emoji):
         send_msg = f"[INFO] BOTのDMで{member.name}が{emoji}のリアクションを押下"
         print(send_msg)
         if emoji in self.emoji_number:
@@ -453,9 +478,10 @@ class Self_Introduction(commands.Cog):
                 select_column = "before_study"
             elif emoji == "6⃣":
                 select_column = "after_study"
-            self.db_update_selfintroduction("mod_column", select_column, None)
+            self.db_update_selfintroduction(session, member, "mod_column",
+                                            select_column, None)
         elif emoji == "♻️":
-            self.db_reset_selfintroduction(member)
+            self.db_reset_selfintroduction(session, member)
         else:
             # 想定する絵文字以外のリアクションが発生した場合
             log_msg = "[WARNING] 想定しないリアクションです"
@@ -473,35 +499,50 @@ class Self_Introduction(commands.Cog):
         if message.author.bot:
             return
         dm = await message.author.create_dm()
-        member = self.GUILD.get_member(dm.me.id)
+        member = self.GUILD.get_member(message.author.id)
         # 受信したメッセージの内容をどのカラムに保存するかを確認
         # 次不足しているデータの確認
+        session = Selfintroduction.session()
         missingdata_column, next_missingdata_column = self.check_missingdata(
-            member)
-        # データのチェック
-        check_msg = await self.check_msg_content(dm, missingdata_column,
-                                                 message.content)
-        if check_msg:
-            return
-        # 不足しているデータをDBに書き込み
-        self.db_update_selfintroduction(member, missingdata_column,
-                                        message.content,
-                                        next_missingdata_column)
-        # 不足しているデータから次の送信メッセージを選択
-        send_msg = self.select_nextquestionmsg(next_missingdata_column)
-        await dm.send(embed=self.strfembed(send_msg))
-        if not missingdata_column and not next_missingdata_column:
-            # データに不足がない場合
-            comp_msg = f"{message.author.name}さんの自己紹介文は既に登録済みです。"\
+            session, member)
+        if missingdata_column != "sendmsg_id":
+            # mod_columnが[sendmsg_id]以外の時
+            # データのチェック
+            check_msg = await self.check_msg_content(dm, missingdata_column,
+                                                     message.content)
+            if not check_msg:
+                # 想定しない文字列の場合は再度同じ質問を行い、return
+                send_msg = self.select_nextquestionmsg(missingdata_column)
+                await dm.send(embed=self.strfembed(send_msg))
+                return
+        if missingdata_column:
+            # 修正するカラムがある時
+            if "sendmsg_id" not in missingdata_column:
+                # 自己紹介が完成した時
+                self.db_update_selfintroduction(session, member,
+                                                missingdata_column,
+                                                message.content,
+                                                next_missingdata_column)
+                # 不足しているデータから次の送信メッセージを選択
+                send_msg = self.select_nextquestionmsg(next_missingdata_column)
+                await dm.send(embed=self.strfembed(send_msg))
+            if next_missingdata_column is None and "sendmsg_id" not in missingdata_column:  # noqa: E501
+                # ¥predit（自己紹介送信済）から一つのカラムを修正した時
+                await self.selfintroduction_msg_update(session, member)
+
+            if "sendmsg_id" in [missingdata_column, next_missingdata_column]:
+                # メッセージを勉強ギルドに送信する処理
+                await self.selfintroduction_msg_update(session, member)
+            session.commit()
+        else:
+            # 自己紹介が完成しており、変更カラムもなく送信済み
+            send_msg = f"{message.author.name}さんの自己紹介文は既に登録済みです。"\
                 + "\n変更する場合は、[ ¥predit ]とコマンドを送信して下さい。"
-            await message.channel.send(embed=self.strfembed(comp_msg))
+            await dm.send(embed=self.strfembed(send_msg))
             return
-        # メッセージを勉強ギルドに送信する処理
-        self.selfintroduction_msg_update(member)
-        # ここ続けて書く必要あり
 
     @commands.command()
-    @commands.dm_only()
+    # @commands.dm_only()
     async def predit(self, message):
         """
         既存の自己紹介データを送信し、修正するカラムをメンバーに指定してもらう
@@ -511,22 +552,19 @@ class Self_Introduction(commands.Cog):
         #     return
         member = self.GUILD.get_member(message.author.id)
         dm = await message.author.create_dm()
-        # if 自己紹介送信済みであること、mod_columnがNoneであること
-        #     send_msg = "自己紹介を登録してから[ ¥predit ]コマンド(7文字)を使用して下さい。" \
-        #         + "何かメッセージを送信してみてください"
-        #     await dm.send(embed=self.strfembed("send_msg"))
-        embed = self.current_setting(member, self.emoji_number)
+        session = Selfintroduction.session()
+        embed = self.current_setting(session, member, self.emoji_number)
         send_embedmsg = await dm.send(embed=embed)
         # メッセージにリアクションを付与
         for emoji in self.emoji_number:
             await send_embedmsg.add_reaction(emoji)
         await send_embedmsg.add_reaction("♻️")
-        emoji = await self.wait_reaction_add(message, self.emoji_number)
+        emoji = await self.wait_reaction_add(send_embedmsg, self.emoji_number)
         # 指定した修正するカラムをDBに保存
-        self.emoji_mod_column(member, emoji)
+        self.emoji_mod_column(session, member, emoji)
         # DBのmod_columnから次の質問する内容を選別し、DMで送信する
         missingdata_column, _ = self.check_missingdata(
-            member)
+            session, member)
         send_msg = self.select_nextquestionmsg(missingdata_column)
         await dm.send(embed=self.strfembed(send_msg))
 
