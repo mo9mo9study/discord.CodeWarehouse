@@ -109,7 +109,7 @@ class Self_Introduction(commands.Cog):
         """
         # session = Selfintroduction.session()
         obj = self.db_select_selfintroduction(session, member)
-        reset_columns = ["nickname", "sex", "twitter_id", "specialty",
+        reset_columns = ["nickname", "gender", "twitter_id", "specialty",
                          "before_study", "after_study"]
         for column in reset_columns:
             setattr(obj, column, None)
@@ -168,8 +168,8 @@ class Self_Introduction(commands.Cog):
         # 次修正するカラムを確認
         if not m_d.nickname and m_d.mod_column != "nickname":
             next_missingdata_column = "nickname"
-        elif not m_d.sex and m_d.mod_column != "sex":
-            next_missingdata_column = "sex"
+        elif not m_d.gender and m_d.mod_column != "gender":
+            next_missingdata_column = "gender"
         elif not m_d.twitter_id and m_d.mod_column != "twitter_id":
             next_missingdata_column = "twitter_id"
         elif not m_d.specialty and m_d.mod_column != "specialty":
@@ -207,7 +207,7 @@ class Self_Introduction(commands.Cog):
         """
         if next_missingdata_column == "nickname":
             next_msg = self.question1
-        elif next_missingdata_column == "sex":
+        elif next_missingdata_column == "gender":
             next_msg = f"""\> 性別を教えて下さい。\n{self.question2}"""  # noqa: W605
         elif next_missingdata_column == "twitter_id":
             next_msg = self.question3
@@ -242,7 +242,7 @@ class Self_Introduction(commands.Cog):
             await dm.send(embed=self.strfembed(send_msg))
             check_msg = False
         else:
-            if missingdata_column == "sex":
+            if missingdata_column == "gender":
                 if msg_cont not in ["男", "女", "非公開"]:
                     check_msg = False
         return check_msg
@@ -371,7 +371,7 @@ class Self_Introduction(commands.Cog):
         embed = discord.Embed(
             title="自己紹介",
             description=desc_msg,  # noqa: E501
-            color=self.gender_color(obj.sex))
+            color=self.gender_color(obj.gender))
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="【 __呼び名__ 】",
                         value=f":name_badge: {obj.nickname}",
@@ -444,10 +444,10 @@ class Self_Introduction(commands.Cog):
         embed = discord.Embed(
             title="現在自己紹介を修正",
             description=desc,
-            color=self.gender_color(obj.sex))
+            color=self.gender_color(obj.gender))
         embed.add_field(name=f"{number[0]}",
                         value=obj.nickname, inline=False)
-        embed.add_field(name=f"{number[1]}", value=obj.sex, inline=False)
+        embed.add_field(name=f"{number[1]}", value=obj.gender, inline=False)
         embed.add_field(name=f"{number[2]}",
                         value=obj.twitter_id, inline=False)
         embed.add_field(name=f"{number[3]}",
@@ -469,7 +469,7 @@ class Self_Introduction(commands.Cog):
             if emoji == "1⃣":
                 select_column = "nickname"
             elif emoji == "2⃣":
-                select_column = "sex"
+                select_column = "gender"
             elif emoji == "3⃣":
                 select_column = "twitter_id"
             elif emoji == "4⃣":
