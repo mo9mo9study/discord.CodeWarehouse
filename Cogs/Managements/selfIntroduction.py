@@ -75,8 +75,9 @@ class Self_Introduction(commands.Cog):
         """
         # discord.DMChannelオブジェクトを取得
         dm = await member.create_dm()
+        session = Selfintroduction.session()
         # selfintroductionテーブルに参加したメンバーの情報をinsert
-        await self.db_insert_selfintroduction(member)
+        await self.db_insert_selfintroduction(session, member)
         # 参加者にdmを送る
         send_msg = "ギルドへの参加ありがとうございます"\
             + "\nこれから自己紹介の処理を進めますので、質問に答えて下さい"
