@@ -11,10 +11,6 @@ class Self_Introduction(commands.Cog):
         self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
         self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
         self.LOG_CHANNEL_ID = 801060150433153054
-        # self.GUILD_ID = 696268022930866177
-        # self.INTRODUCTION_CHANNEL_ID = 909813699072643092
-        # self.LOG_CHANNEL_ID = 909813908699754516
-
         self.emoji_number = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         # 以下、質問６項目
         self.question1 = "\> 呼び名を教えてください"  # noqa: W605
@@ -33,19 +29,6 @@ class Self_Introduction(commands.Cog):
         self.INTRODUCTION_CHANNEL = self.GUILD.get_channel(
             self.INTRODUCTION_CHANNEL_ID)
         self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
-        # 全てのパラメータが埋まっている状態で、まだ自己紹介を送信していない場合
-        # 後ほど必要になるだろう処理
-
-        # 再度確認用のメッセージをDMに送る処理追加
-        # for channel in self.DEBUG_GUILD.text_channels:
-        #     count = await self.get_count(channel)
-        #     if count == 6:
-        #         member = guild.get_member(
-        #             int(channel.name))
-        #         print(f"自己紹介を送信していないユーザー: {member}/{channel}")
-        #         if member is None:
-        #             return
-        #         await self.complete(channel, member.id)
 
     async def db_insert_selfintroduction(self, session, member):
         """
