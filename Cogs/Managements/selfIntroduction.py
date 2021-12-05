@@ -304,14 +304,6 @@ class Self_Introduction(commands.Cog):
             log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
         await self.LOG_CHANNEL.send(log_msg)
 
-    async def send_message(self, channel, dm, msgcontent, content):
-        """
-        ---on_messageイベント内でのみ呼び出される---
-        channelとdmにメッセージを送信するメソッド
-        """
-        await channel.send(msgcontent)
-        await dm.send(embed=self.strfembed(content))
-
     # 自己紹介を初期化する処理
     async def selfintroduction_reset(self, session, member, dm) -> None:
         """
