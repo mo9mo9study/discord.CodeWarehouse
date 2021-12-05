@@ -8,12 +8,12 @@ class Self_Introduction(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        # self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
-        # self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
-        # self.LOG_CHANNEL_ID = 801060150433153054
-        self.GUILD_ID = 696268022930866177
-        self.INTRODUCTION_CHANNEL_ID = 909813699072643092
-        self.LOG_CHANNEL_ID = 909813908699754516
+        self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
+        self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
+        self.LOG_CHANNEL_ID = 801060150433153054
+        # self.GUILD_ID = 696268022930866177
+        # self.INTRODUCTION_CHANNEL_ID = 909813699072643092
+        # self.LOG_CHANNEL_ID = 909813908699754516
 
         self.emoji_number = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         # 以下、質問６項目
@@ -63,8 +63,8 @@ class Self_Introduction(commands.Cog):
             obj = Selfintroduction(
                 guild_id=member.guild.id,
                 member_id=member.id,
-                mod_column="nickname"
             )
+            obj.mod_column = "nickname"
             Selfintroduction.insert(obj)
 
     # サーバーにメンバーが参加した時
@@ -148,7 +148,6 @@ class Self_Introduction(commands.Cog):
         session.add(obj)
         # session.flush()
         session.commit()
-        print("[DEBUG] commit")
 
     def check_missingdata(self, session, member) -> str:
         """
@@ -307,6 +306,7 @@ class Self_Introduction(commands.Cog):
             # 新規自己紹介（過去に自己紹介を送信してない）場合
             log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
         await self.LOG_CHANNEL.send(log_msg)
+        print(log_msg)
 
     # 自己紹介を初期化する処理
     async def selfintroduction_reset(self, session, member, dm) -> None:
@@ -479,7 +479,7 @@ class Self_Introduction(commands.Cog):
             self.db_reset_selfintroduction(session, member)
         else:
             # 想定する絵文字以外のリアクションが発生した場合
-            log_msg = "[WARNING] 想定しないリアクションです"
+            log_msg = "[WARN] 想定しないリアクションです"
             print(log_msg)
             return
 
