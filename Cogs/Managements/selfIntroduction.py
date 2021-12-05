@@ -23,6 +23,7 @@ class Self_Introduction(commands.Cog):
         self.question4 = "\> 得意分野は何ですか？"  # noqa: W605
         self.question5 = "\> 今まで何を勉強してきましたか？"  # noqa: W605
         self.question6 = "\> これから勉強していきたいことは何ですか？"  # noqa: W605
+        self.command_names = ["¥predit"]
 
     # Botを起動したときに__init__に格納したIDからオブジェクトを取得
 
@@ -116,7 +117,7 @@ class Self_Introduction(commands.Cog):
             setattr(obj, column, None)
         obj.mod_column = "nickname"
         session.add(obj)
-        session.flush()
+        session.commit()
 
     def db_update_selfintroduction(self, session, member, select_column,
                                    after_value, next_mod_column) -> None:
@@ -272,39 +273,36 @@ class Self_Introduction(commands.Cog):
         emoji = await self.wait_reaction_add(embed_message, ["👍", "♻️"])
         # 押された絵文字が👍の時(今の内容で登録する)
         if emoji == "👍":
+            # 新しい自己紹介を送信
             after_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
+            # 過去の自己紹介を削除
+            await self.delete_before_selfintroduction_msg(session, member)
             # await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
             send_msg2 = "登録が完了しました" \
                 + "\n※登録した自己紹介を修正したい場合は[ ¥predit ]のコマンド(7文字)を送信してください"   # noqa: E501
             await dm.send(embed=self.strfembed(send_msg2))
-            log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
-            # 送信先のメッセージのIDをDBに保存
+            # DBの自己紹介メッセージのIDを過去のIDから新しいIDに更新する
             self.db_update_selfintroduction(session, member, "sendmsg_id",
                                             after_msg.id, None)
-            await self.LOG_CHANNEL.send(log_msg)
         elif emoji == "♻️":
             await self.selfintroduction_reset(session, member, dm)
 
-    async def selfintroduction_msg_update(self, session, member):
-        """
-        既存の自己紹介メッセージが存在する場合は削除し、
-        データ更新後の自己紹介メッセージを送信する
-
-        Parameter
-        ---------
-        member : discord.Member
-            message.authorから取得したメンバーオブジェクト
-        """
+    async def delete_before_selfintroduction_msg(self, session, member):
+        """DBから過去にメッセージを送信した記録があった場合、そのメッセージを削除する"""
         member_data = self.db_select_selfintroduction(session, member)
         channel = self.INTRODUCTION_CHANNEL
         msg_id = member_data.sendmsg_id
+        log_msg = ""
         if msg_id:
             if msg_id.isdecimal():
                 # 既存の自己紹介メッセージを削除
                 selfintroduction_msg = await channel.fetch_message(int(msg_id))
                 await selfintroduction_msg.delete()
-        # 完成した自己紹介を送信
-        await self.send_selfintroduction(session, member)
+                log_msg = f"[INFO] {member.name}の過去の自己紹介が削除・更新しました"
+        if not log_msg:
+            # 新規自己紹介（過去に自己紹介を送信してない）場合
+            log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
+        await self.LOG_CHANNEL.send(log_msg)
 
     async def send_message(self, channel, dm, msgcontent, content):
         """
@@ -499,6 +497,8 @@ class Self_Introduction(commands.Cog):
         # 送信者がbotの場合は無視する
         if message.author.bot:
             return
+        if message.content in self.command_names:
+            return
         dm = await message.author.create_dm()
         member = self.GUILD.get_member(message.author.id)
         session = Selfintroduction.session()
@@ -531,12 +531,12 @@ class Self_Introduction(commands.Cog):
                 await dm.send(embed=self.strfembed(send_msg))
             if next_missingdata_column is None and "sendmsg_id" not in missingdata_column:  # noqa: E501
                 # ¥predit（自己紹介送信済）から一つのカラムを修正した時
-                await self.selfintroduction_msg_update(session, member)
+                await self.send_selfintroduction(session, member)
 
             if "sendmsg_id" in [missingdata_column, next_missingdata_column]:
                 # メッセージを勉強ギルドに送信する処理
-                await self.selfintroduction_msg_update(session, member)
-            session.commit()
+                await self.send_selfintroduction(session, member)
+            # session.commit()
         else:
             # 自己紹介が完成しており、変更カラムもなく送信済み
             send_msg = f"{message.author.name}さんの自己紹介文は既に登録済みです。"\
@@ -561,14 +561,18 @@ class Self_Introduction(commands.Cog):
         for emoji in self.emoji_number:
             await send_embedmsg.add_reaction(emoji)
         await send_embedmsg.add_reaction("♻️")
-        emoji = await self.wait_reaction_add(send_embedmsg, self.emoji_number)
-        # 指定した修正するカラムをDBに保存
-        self.emoji_mod_column(session, member, emoji)
+        check_emojis = self.emoji_number + ["♻️"]
+        emoji = await self.wait_reaction_add(send_embedmsg, check_emojis)
+        if emoji in self.emoji_number:
+            # 指定した修正するカラムをDBに保存
+            self.emoji_mod_column(session, member, emoji)
+            missingdata_column, _ = self.check_missingdata(
+                session, member)
+            send_msg = self.select_nextquestionmsg(missingdata_column)
+            await dm.send(embed=self.strfembed(send_msg))
+        if emoji == "♻️":
+            await self.selfintroduction_reset(session, member, dm)
         # DBのmod_columnから次の質問する内容を選別し、DMで送信する
-        missingdata_column, _ = self.check_missingdata(
-            session, member)
-        send_msg = self.select_nextquestionmsg(missingdata_column)
-        await dm.send(embed=self.strfembed(send_msg))
 
 
 def setup(bot):
