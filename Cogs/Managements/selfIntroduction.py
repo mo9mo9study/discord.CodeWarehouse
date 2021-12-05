@@ -296,9 +296,13 @@ class Self_Introduction(commands.Cog):
         if msg_id:
             if msg_id.isdecimal():
                 # 既存の自己紹介メッセージを削除
-                selfintroduction_msg = await channel.fetch_message(int(msg_id))
-                await selfintroduction_msg.delete()
-                log_msg = f"[INFO] {member.name}の過去の自己紹介が削除・更新しました"
+                try:
+                    selfintroduction_msg = await channel.fetch_message(int(msg_id))  # noqa: E501
+                    # メッセージが取得できない場合の処理
+                    await selfintroduction_msg.delete()
+                    log_msg = f"[INFO] {member.name}の過去の自己紹介を削除し、新しい自己紹介を送信しました"  # noqa: E501
+                except discord.NotFound:
+                    log_msg = f"[WARN] {member.name}の自己紹介を送信しましたが、過去の自己紹介の削除に失敗しました"  # noqa: E501
         if not log_msg:
             # 新規自己紹介（過去に自己紹介を送信してない）場合
             log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
@@ -361,7 +365,7 @@ class Self_Introduction(commands.Cog):
             + f"\njoined: {str(member.joined_at.strftime('%Y-%m-%d'))}"
         embed = discord.Embed(
             title="自己紹介",
-            description=desc_msg,  # noqa: E501
+            description=desc_msg,
             color=self.gender_color(obj.gender))
         embed.set_thumbnail(url=member.avatar_url)
         embed.add_field(name="【 __呼び名__ 】",
@@ -482,13 +486,15 @@ class Self_Introduction(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         """
-        メンバーとBOT間のDMをトリガーに実行される
+        メンバーから送信されるBOTへのDMをトリガーに実行される
+        自己紹介を作成、修正する際に使用される
         """
         if not isinstance(message.channel, discord.DMChannel):
             return
-        # 送信者がbotの場合は無視する
         if message.author.bot:
             return
+        # on_messageはcommand[¥predit]のメッセージにも反応してしまい
+        # 1つのメッセージで2度処理されてしまう問題を以下のreturnで解決
         if message.content in self.command_names:
             return
         dm = await message.author.create_dm()
