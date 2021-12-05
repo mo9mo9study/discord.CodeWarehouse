@@ -490,20 +490,22 @@ class Self_Introduction(commands.Cog):
             return
 
     @commands.Cog.listener()
-    @commands.dm_only()
     async def on_message(self, message):
         """
         メンバーとBOT間のDMをトリガーに実行される
         """
-        # if isinstance(message.channel, discord.DMChannel):
+        if not isinstance(message.channel, discord.DMChannel):
+            return
         # 送信者がbotの場合は無視する
         if message.author.bot:
             return
         dm = await message.author.create_dm()
         member = self.GUILD.get_member(message.author.id)
+        session = Selfintroduction.session()
+        # メンバーのレコードが存在しない場合には新規作成
+        await self.db_insert_selfintroduction(session, member)
         # 受信したメッセージの内容をどのカラムに保存するかを確認
         # 次不足しているデータの確認
-        session = Selfintroduction.session()
         missingdata_column, next_missingdata_column = self.check_missingdata(
             session, member)
         if missingdata_column != "sendmsg_id":
@@ -543,14 +545,13 @@ class Self_Introduction(commands.Cog):
             return
 
     @commands.command()
-    # @commands.dm_only()
     async def predit(self, message):
         """
         既存の自己紹介データを送信し、修正するカラムをメンバーに指定してもらう
         リアクションで対象のカラムを指定し、mod_columnに対象カラムを保存する
         """
-        # if not isinstance(message.channel, discord.DMChannel):
-        #     return
+        if not isinstance(message.channel, discord.DMChannel):
+            return
         member = self.GUILD.get_member(message.author.id)
         dm = await message.author.create_dm()
         session = Selfintroduction.session()
