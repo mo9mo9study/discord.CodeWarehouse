@@ -259,7 +259,7 @@ class Self_Introduction(commands.Cog):
             after_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
             # 過去の自己紹介を削除
             await self.delete_before_selfintroduction_msg(session, member)
-            # await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
+            await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
             send_msg2 = "登録が完了しました" \
                 + "\n※登録した自己紹介を修正したい場合は[ ¥predit ]のコマンド(7文字)を送信してください"   # noqa: E501
             await dm.send(embed=self.strfembed(send_msg2))
