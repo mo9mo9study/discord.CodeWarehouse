@@ -6,7 +6,7 @@ chardet==3.0.4
 discord.py==1.7.3
 emojis==0.6.0
 idna==2.10
-mo9mo9db==0.0.20
+mo9mo9db==0.1.0
 multidict==4.7.6
 numpy==1.20.1
 pandas==1.2.3
