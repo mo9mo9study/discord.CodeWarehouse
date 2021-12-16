@@ -8,13 +8,9 @@ class Self_Introduction(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        # self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
-        # self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
-        # self.LOG_CHANNEL_ID = 801060150433153054
-        self.GUILD_ID = 696268022930866177
-        self.INTRODUCTION_CHANNEL_ID = 909813699072643092
-        self.LOG_CHANNEL_ID = 909813908699754516
-
+        self.GUILD_ID = 603582455756095488  # mo9mo9サーバーのID
+        self.INTRODUCTION_CHANNEL_ID = 615185771565023244  # mo9mo9の自己紹介チャンネル
+        self.LOG_CHANNEL_ID = 801060150433153054
         self.emoji_number = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         # 以下、質問６項目
         self.question1 = "\> 呼び名を教えてください"  # noqa: W605
@@ -33,19 +29,6 @@ class Self_Introduction(commands.Cog):
         self.INTRODUCTION_CHANNEL = self.GUILD.get_channel(
             self.INTRODUCTION_CHANNEL_ID)
         self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
-        # 全てのパラメータが埋まっている状態で、まだ自己紹介を送信していない場合
-        # 後ほど必要になるだろう処理
-
-        # 再度確認用のメッセージをDMに送る処理追加
-        # for channel in self.DEBUG_GUILD.text_channels:
-        #     count = await self.get_count(channel)
-        #     if count == 6:
-        #         member = guild.get_member(
-        #             int(channel.name))
-        #         print(f"自己紹介を送信していないユーザー: {member}/{channel}")
-        #         if member is None:
-        #             return
-        #         await self.complete(channel, member.id)
 
     async def db_insert_selfintroduction(self, session, member):
         """
@@ -63,8 +46,8 @@ class Self_Introduction(commands.Cog):
             obj = Selfintroduction(
                 guild_id=member.guild.id,
                 member_id=member.id,
-                mod_column="nickname"
             )
+            obj.mod_column = "nickname"
             Selfintroduction.insert(obj)
 
     # サーバーにメンバーが参加した時
@@ -148,7 +131,6 @@ class Self_Introduction(commands.Cog):
         session.add(obj)
         # session.flush()
         session.commit()
-        print("[DEBUG] commit")
 
     def check_missingdata(self, session, member) -> str:
         """
@@ -277,7 +259,7 @@ class Self_Introduction(commands.Cog):
             after_msg = await self.INTRODUCTION_CHANNEL.send(embed=embed)
             # 過去の自己紹介を削除
             await self.delete_before_selfintroduction_msg(session, member)
-            # await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
+            await after_msg.add_reaction("<:yoroshiku:761730298106478592>")
             send_msg2 = "登録が完了しました" \
                 + "\n※登録した自己紹介を修正したい場合は[ ¥predit ]のコマンド(7文字)を送信してください"   # noqa: E501
             await dm.send(embed=self.strfembed(send_msg2))
@@ -307,6 +289,7 @@ class Self_Introduction(commands.Cog):
             # 新規自己紹介（過去に自己紹介を送信してない）場合
             log_msg = f"[INFO] {member.name}の自己紹介が送信されました"
         await self.LOG_CHANNEL.send(log_msg)
+        print(log_msg)
 
     # 自己紹介を初期化する処理
     async def selfintroduction_reset(self, session, member, dm) -> None:
@@ -479,7 +462,7 @@ class Self_Introduction(commands.Cog):
             self.db_reset_selfintroduction(session, member)
         else:
             # 想定する絵文字以外のリアクションが発生した場合
-            log_msg = "[WARNING] 想定しないリアクションです"
+            log_msg = "[WARN] 想定しないリアクションです"
             print(log_msg)
             return
 
