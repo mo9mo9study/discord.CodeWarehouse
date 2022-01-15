@@ -33,5 +33,6 @@ bot.load_extension("Cogs.Managements.regularly_times_delete")
 bot.load_extension("Cogs.Managements.timesname_update")
 bot.load_extension("Cogs.Managements.counter_studyingmember")
 bot.load_extension("Cogs.Managements.times_keepchisei")
+bot.load_extension("Cogs.Managements.deletes_msg4after24hour")
 
 bot.run(TOKEN)
