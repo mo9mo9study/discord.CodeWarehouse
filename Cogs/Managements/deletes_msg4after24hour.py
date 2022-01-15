@@ -41,7 +41,7 @@ class DeletesMsg(commands.Cog):
         """
         Confirmation of processing start.
         """
-        logmsg = f"[DEBUG] ギルド内で指定ワード({searchtarget})を含むメッセージ(24時間以内)の{action}を開始しました"  # noqa: E501
+        logmsg = f"[INFO] ギルド内で指定ワード({searchtarget})を含むメッセージ(24時間以内)の{action}を開始しました"  # noqa: E501
         await message.reply(logmsg)
         print(logmsg)
 
@@ -56,7 +56,7 @@ class DeletesMsg(commands.Cog):
             await self.LOG_CHANNEL.send(logmsg)
         else:
             # send message reply
-            logmsg = f"[DEBUG] 指定ワード({searchtarget})を含むメッセージ(24時間以内)を{msg_count}件{action}しました"  # noqa: E501
+            logmsg = f"[INFO] 指定ワード({searchtarget})を含むメッセージ(24時間以内)を{msg_count}件{action}しました"  # noqa: E501
             await message.reply(logmsg)
         print(f"[DEBUG] 対象: {searchtarget}/メッセージ件数: {msg_count}件/ アクション: {action}")  # noqa: E501
 
