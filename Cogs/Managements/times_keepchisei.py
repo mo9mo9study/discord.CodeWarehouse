@@ -50,6 +50,7 @@ class TimesKeepChisei(commands.Cog):
                     send_msg = await self.CHANNEL.send(msg)
                     log_msg = f"[INFO] {times_channel.mention}にロールchisei2からのメッセージ送信権限を{bool_per}に変更"  # noqa #501
                     await self.LOG_CHANNEL.send(log_msg)
+                    print(log_msg)
                     break
             else:
                 send_msg = await self.CHANNEL.send(textwrap.dedent(f"""\
