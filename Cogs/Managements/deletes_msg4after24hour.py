@@ -70,7 +70,7 @@ class DeletesMsg(commands.Cog):
         action = self.action_check(delete)
         msg_count = 0
         aftertime = datetime.datetime.now() - datetime.timedelta(days=1)
-        self.before_sendmsg(ctx, delete_word, action)
+        await self.before_sendmsg(ctx, delete_word, action)
         for channel in self.GUILD.text_channels:
             if isinstance(channel, discord.TextChannel):
                 messages = await channel.history(
@@ -81,7 +81,7 @@ class DeletesMsg(commands.Cog):
                         if delete:
                             await message.delete()
                         msg_count += 1
-        self.after_sendmsg(ctx, delete_word, action, msg_count, delete)
+        await self.after_sendmsg(ctx, delete_word, action, msg_count, delete)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -94,7 +94,7 @@ class DeletesMsg(commands.Cog):
         action = self.action_check(delete)
         msg_count = 0
         aftertime = datetime.datetime.now() - datetime.timedelta(days=1)
-        self.before_sendmsg(ctx, delete_memberid, action)
+        await self.before_sendmsg(ctx, delete_memberid, action)
         for channel in self.GUILD.text_channels:
             if isinstance(channel, discord.TextChannel):
                 messages = await channel.history(
@@ -109,7 +109,8 @@ class DeletesMsg(commands.Cog):
                             await message.delete()
                         print(debugmsg)
                         msg_count += 1
-        self.after_sendmsg(ctx, delete_memberid, action, msg_count, delete)
+        await self.after_sendmsg(ctx, delete_memberid,
+                                 action, msg_count, delete)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
