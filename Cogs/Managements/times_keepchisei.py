@@ -48,16 +48,15 @@ class TimesKeepChisei(commands.Cog):
                                                       bool_per)
                     msg = f"{times_channel.mention}{msg_action}"
                     send_msg = await self.CHANNEL.send(msg)
-                    await ViewTimesChannel(self.bot).time_sleep(send_msg)
                     log_msg = f"[INFO] {times_channel.mention}にロールchisei2からのメッセージ送信権限を{bool_per}に変更"  # noqa #501
                     await self.LOG_CHANNEL.send(log_msg)
                     break
             else:
-                msg = await self.CHANNEL.send(textwrap.dedent(f"""\
+                send_msg = await self.CHANNEL.send(textwrap.dedent(f"""\
                     timesチャンネルが見つかりませんでした。
                     {self.CREATE_TIMES.mention} でtimesを作成してください。"""))
-                await self.time_sleep(msg)
                 await select_msg.remove_reaction(payload.emoji, member)
+            await ViewTimesChannel(self.bot).time_sleep(send_msg)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
