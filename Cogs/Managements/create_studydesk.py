@@ -39,7 +39,7 @@ class CreateStudyDesk(commands.Cog):
                         "NFKD", r_d1.match(channel.name)[1])
                     vc_sorted_dict[int(vc_namenu)] = channel
             # 勉強机を作成するチャンネル
-            elif channel.name.endswith("勉強机を作成"):
+            elif "勉強机を作成" in channel.name:
                 vc_sorted_dict[vc_deskcreate_pos] = channel
         return vc_sorted_dict
 
@@ -85,7 +85,7 @@ class CreateStudyDesk(commands.Cog):
             if r_d2.match(channel.name):
                 vc_namenu = r_d2.match(channel.name)[1]
                 print(
-                    f"[DEBUG: high] {channel.name}/{vc_namenu}:{channel.position}")  # noqa: E501
+                    f"[DEBUG] {channel.name}/{vc_namenu}:{channel.position}")  # noqa: E501
                 vc_pos = int(vc_namenu)
                 if (vc_pos + 1) != channel.position:
                     diff_msg = f"{channel.name}/{vc_namenu}:{channel.position}"
@@ -135,11 +135,11 @@ class CreateStudyDesk(commands.Cog):
             if not create_channelposition:  # 10over, False
                 # 連番に欠番が存在しない時
                 vc_sorted_dict = self.vc_sort()
-                lastvc_pos = vc_sorted_dict[len(
-                    self.CATEGORY.channels)].position
+                studydesk_len = len(self.CATEGORY.channels)
+                lastvc_pos = vc_sorted_dict[studydesk_len - 1].position
                 create_channelposition = lastvc_pos
             new_studydesk = await self.CATEGORY.create_voice_channel(
-                name=f"もくもく勉強机{str(create_channelposition)}",
+                name=f"もくもく勉強机{str(studydesk_len)}",
                 user_limit=1,
                 position=create_channelposition+1)
             await member.move_to(new_studydesk)
