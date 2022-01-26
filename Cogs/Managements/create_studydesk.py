@@ -135,19 +135,22 @@ class CreateStudyDesk(commands.Cog):
         # empty_studydesk.clear()  # 擬似的な満席
         if not empty_studydesk:
             # 10以降の連番に欠番が存在するかどうか
-            create_channelposition = self.desk_missing_number()
-            if not create_channelposition:  # 10over, False
+            # create_channelposition = self.desk_missing_number()
+            create_deskno = self.desk_missing_number()
+            if not create_deskno:  # 10over, False
                 # 連番に欠番が存在しない時
                 vc_sorted_dict = self.vc_sort()
-                studydesk_len = len(self.CATEGORY.channels)
+                studydesk_len = len(self.CATEGORY.channels)  # チャンネル総数
+                # ソートした辞書からpos取得
                 lastvc_pos = vc_sorted_dict[studydesk_len - 1].position
-                create_channelposition = lastvc_pos
+                create_deskno = lastvc_pos  # 作成する勉強机No
+            create_deskname = f"もくもく勉強机{str(create_deskno)}"
             new_studydesk = await self.CATEGORY.create_voice_channel(
-                name=f"もくもく勉強机{str(studydesk_len)}",
+                name=create_deskname,
                 user_limit=1,
-                position=create_channelposition+1)
+                position=create_deskno+1)
             await member.move_to(new_studydesk)
-            log_msg = f"[INFO] もくもく勉強机{create_channelposition} を作成(Before_studydeskCount: {v_count})"  # noqa: E501
+            log_msg = f"[INFO] {create_deskname} を作成(出席者:{member.name})"  # noqa: E501
             print(log_msg)
             await self.LOG_CHANNEL.send(log_msg)
             await self.boolif_runedit()
