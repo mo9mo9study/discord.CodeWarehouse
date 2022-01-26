@@ -150,7 +150,7 @@ class CreateStudyDesk(commands.Cog):
                 user_limit=1,
                 position=create_deskno+1)
             await member.move_to(new_studydesk)
-            log_msg = f"[INFO] {create_deskname} を作成(出席者:{member.name})"  # noqa: E501
+            log_msg = f"[INFO] {create_deskname} を用意(出席者:{member.name})"  # noqa: E501
             print(log_msg)
             await self.LOG_CHANNEL.send(log_msg)
             await self.boolif_runedit()
@@ -159,14 +159,16 @@ class CreateStudyDesk(commands.Cog):
             await member.move_to(empty_studydesk[0])
             await self.boolif_runedit()
 
-    async def remove_studydesk_10over(self, before):
+    async def remove_studydesk_10over(self, member, before):
         # 参加していたチャンネルが勉強机の時
         if before.channel.name.startswith("もくもく勉強机"):
             r_d2 = re.compile(r"もくもく勉強机(\d{2}).*")
             # 机の席番が10以上のチャンネルから退出した時
             if r_d2.match(before.channel.name):
                 await before.channel.delete()
-                print(f"[INFO] {before.channel.name} を削除しました")
+                log_msg = f"[INFO] {before.channel.name} を片付け(退席者:{member.name})"  # noqa: E501
+                print(log_msg)
+                await self.LOG_CHANNEL.send(log_msg)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -178,7 +180,7 @@ class CreateStudyDesk(commands.Cog):
             print("[DEBUG] 処理不要な入室時")
         elif before.channel != after.channel and after.channel is None:
             # 退出時: 勉強机10以降から退出した時
-            await self.remove_studydesk_10over(before)
+            await self.remove_studydesk_10over(member, before)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
