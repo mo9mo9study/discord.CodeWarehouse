@@ -139,7 +139,6 @@ class CreateStudyDesk(commands.Cog):
         # empty_studydesk.clear()  # 擬似的な満席
         if not empty_studydesk:
             # 10以降の連番に欠番が存在するかどうか
-            # create_channelposition = self.desk_missing_number()
             create_deskno = self.desk_missing_number()
             if not create_deskno:  # 10over, False
                 # 連番に欠番が存在しない時
