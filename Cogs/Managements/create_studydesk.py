@@ -84,29 +84,22 @@ class CreateStudyDesk(commands.Cog):
                     f"[INFO] {channel.name}を位置({before_pos} -> {channel.position} )に変更")  # noqa: E501
 
     def check_pos(self):
+        """
+        勉強机の位置に修正が必要かを確認し、
+        後続処理の実行可否の判定条件になるbool値を返す
+        """
         self.CATEGORY = self.GUILD.get_channel(self.CATEGORY_ID)
         vcpos_diffarent = []
         for channel in self.CATEGORY.channels:
-            r_d1 = re.compile(r"もくもく勉強机(\d).*")
-            r_d2 = re.compile(r"もくもく勉強机(\d{2}).*")
-            # 勉強机の席番が10〜
-            if r_d2.match(channel.name):
-                vc_namenu = r_d2.match(channel.name)[1]
-                print(
-                    f"[DEBUG] {channel.name}/DeskNo:{vc_namenu}, DeskPos:{channel.position}")  # noqa: E501
-                vc_pos = int(vc_namenu)
-                if (vc_pos + 1) != channel.position:
-                    diff_msg = f"{channel.name}/{vc_namenu}:{channel.position}"
-                    vcpos_diffarent.append(diff_msg)
-            # 勉強机の席番が1〜9
-            elif re.compile(r_d1).match(channel.name):
-                vc_namenu = unicodedata.normalize(
-                    "NFKD", r_d1.match(channel.name)[1])
-                print(
-                    f"[DEBUG] {channel.name}/DeskNo:{vc_namenu}, DeskPos:{channel.position}")  # noqa: E501
-                if int(vc_namenu) != channel.position:
-                    diff_msg = f"{channel.name}/{vc_namenu}:{channel.position}"
-                    vcpos_diffarent.append(diff_msg)
+            # 「もくもく勉強机99」まで対応
+            r_d = re.compile(r"もくもく勉強机(\d{,2}).*")
+            vc_deskno = unicodedata.normalize(
+                "NFKD", r_d.match(channel.name)[1])
+            print(f"[DEBUG] {channel.name}/DeskNo:{vc_deskno}, DeskPos:{channel.position}")  # noqa: E501
+            # 勉強机番号+1と勉強机のPostionが一致しない場合のみ実行
+            if (int(vc_deskno) + 1) != channel.position:
+                diff_msg = f"{channel.name}/n-{vc_deskno}:p-{channel.position}"
+                vcpos_diffarent.append(diff_msg)
         if vcpos_diffarent:
             print(
                 f"[DEBUG] 配置場所が異なる勉強机を発見({','.join(map(str, vcpos_diffarent))})")  # noqa: E501
