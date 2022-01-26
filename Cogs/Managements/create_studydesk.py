@@ -11,7 +11,8 @@ class CreateStudyDesk(commands.Cog):
         self.GUILD_ID = 603582455756095488  # mo9mo9 Guild Id
         self.CATEGORY_ID = 873317086439546900  # Study Space Category Id
         self.LOG_CHANNEL_ID = 801060150433153054  # 通知用 Channel Id
-        self.CREATEDESK_CHANNEL_ID = 897995150926688286
+        self.CREATEDESK_CHANNEL_ID = 897995150926688286  # 勉強机に着席
+        self.CREATEDESK_CHANNEL2_ID = 935921618725777448  # 勉強開始
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -20,6 +21,9 @@ class CreateStudyDesk(commands.Cog):
         self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
         self.CREATEDESK_CHANNEL = self.GUILD.get_channel(
             self.CREATEDESK_CHANNEL_ID)
+        self.CREATEDESK_CHANNEL2 = self.GUILD.get_channel(
+            self.CREATEDESK_CHANNEL2_ID)
+        self.MOVECHANNELS = [self.CREATEDESK_CHANNEL.id, self.CREATEDESK_CHANNEL2.id]  # noqa: E501
 
     def vc_sort(self):
         """
@@ -173,10 +177,11 @@ class CreateStudyDesk(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         # 勉強机を作成する処理専用のVCが複数作る想定で条件式を[==]から[in]に変更
-        if after.channel.id in [self.CREATEDESK_CHANNEL.id] and before.channel is None:  # noqa: E501
-            # [勉強机を作成]するチャンネルに参加した時
+        if (after.channel.id in self.MOVECHANNELS and before.channel is None):
+            # [勉強机]に移動専用のVCに参加した時
             await self.create_studydesk(member)
         elif before.channel != after.channel and before.channel is None:
+            # 退出時: 勉強机1~9から退出した時
             print("[DEBUG] 処理不要な入室時")
         elif before.channel != after.channel and after.channel is None:
             # 退出時: 勉強机10以降から退出した時
