@@ -22,8 +22,12 @@ class CreateStudyDesk(commands.Cog):
             self.CREATEDESK_CHANNEL_ID)
 
     def vc_sort(self):
+        """
+        カテゴリーのチャンネルを全て取得し、チャンネルの並び順を
+        想定通りになるようpos番号を振り直して辞書として値を戻す
+        """
         vc_sorted_dict = {}
-        vc_deskcreate_pos = 10
+        vc_deskcreate_pos = 1
         self.CATEGORY = self.GUILD.get_channel(self.CATEGORY_ID)
         for channel in self.CATEGORY.channels:
             if channel.name.startswith("もくもく勉強机"):
@@ -37,9 +41,9 @@ class CreateStudyDesk(commands.Cog):
                 elif re.compile(r_d1).match(channel.name):
                     vc_namenu = unicodedata.normalize(
                         "NFKD", r_d1.match(channel.name)[1])
-                    vc_sorted_dict[int(vc_namenu)] = channel
+                    vc_sorted_dict[int(vc_namenu) + 1] = channel
             # 勉強机を作成するチャンネル
-            elif "勉強机を作成" in channel.name:
+            elif channel.id in self.CREATEDESK_CHANNEL.id:
                 vc_sorted_dict[vc_deskcreate_pos] = channel
         return vc_sorted_dict
 
@@ -163,7 +167,8 @@ class CreateStudyDesk(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if after.channel == self.CREATEDESK_CHANNEL and before.channel is None:
+        # 勉強机を作成する処理専用のVCが複数作る想定で条件式を[==]から[in]に変更
+        if after.channel.id in [self.CREATEDESK_CHANNEL.id] and before.channel is None:  # noqa: E501
             # [勉強机を作成]するチャンネルに参加した時
             await self.create_studydesk(member)
         elif before.channel != after.channel and before.channel is None:
