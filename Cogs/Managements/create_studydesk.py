@@ -93,13 +93,14 @@ class CreateStudyDesk(commands.Cog):
         for channel in self.CATEGORY.channels:
             # 「もくもく勉強机99」まで対応
             r_d = re.compile(r"もくもく勉強机(\d{,2}).*")
-            vc_deskno = unicodedata.normalize(
-                "NFKD", r_d.match(channel.name)[1])
-            print(f"[DEBUG] {channel.name}/DeskNo:{vc_deskno}, DeskPos:{channel.position}")  # noqa: E501
-            # 勉強机番号+1と勉強机のPostionが一致しない場合のみ実行
-            if (int(vc_deskno) + 1) != channel.position:
-                diff_msg = f"{channel.name}/n-{vc_deskno}:p-{channel.position}"
-                vcpos_diffarent.append(diff_msg)
+            if r_d.match(channel.name):
+                vc_deskno = unicodedata.normalize(
+                    "NFKD", r_d.match(channel.name)[1])
+                print(f"[DEBUG] {channel.name}/DeskNo:{vc_deskno}, DeskPos:{channel.position}")  # noqa: E501
+                # 勉強机番号+1と勉強机のPostionが一致しない場合のみ実行
+                if (int(vc_deskno) + 1) != channel.position:
+                    diff_msg = f"{channel.name}/n-{vc_deskno}:p-{channel.position}"  # noqa: E501
+                    vcpos_diffarent.append(diff_msg)
         if vcpos_diffarent:
             print(
                 f"[DEBUG] 配置場所が異なる勉強机を発見({','.join(map(str, vcpos_diffarent))})")  # noqa: E501
@@ -129,7 +130,7 @@ class CreateStudyDesk(commands.Cog):
                 empty_studydesk.append(channel)
         print(f"[DEBUG] member: {v_count} / channel: {m_count}")
         # 勉強机の数と勉強机に参加している人数が同一の場合
-        # empty_studydesk.clear()  # 擬似的な満席
+        # empty_studydesk.clear()  # 擬似的に満席状態として処理させるテスト用コード
         if not empty_studydesk:
             # 10以降の連番に欠番が存在するかどうか
             create_deskno = self.desk_missing_number()
@@ -139,12 +140,12 @@ class CreateStudyDesk(commands.Cog):
                 studydesk_len = len(self.CATEGORY.channels)  # チャンネル総数
                 # ソートした辞書からpos取得
                 lastvc_pos = vc_sorted_dict[studydesk_len - 1].position
-                create_deskno = lastvc_pos  # 作成する勉強机No
+                create_deskno = studydesk_len  # 作成する勉強机No
             create_deskname = f"もくもく勉強机{str(create_deskno)}"
             new_studydesk = await self.CATEGORY.create_voice_channel(
                 name=create_deskname,
                 user_limit=1,
-                position=create_deskno+1)
+                position=lastvc_pos+1)
             await member.move_to(new_studydesk)
             log_msg = f"[INFO] {create_deskname} を用意(出席者:{member.name})"  # noqa: E501
             print(log_msg)
