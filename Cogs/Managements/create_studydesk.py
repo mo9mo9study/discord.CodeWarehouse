@@ -47,7 +47,7 @@ class CreateStudyDesk(commands.Cog):
                         "NFKD", r_d1.match(channel.name)[1])
                     vc_sorted_dict[int(vc_namenu) + 1] = channel
             # 勉強机を作成するチャンネル
-            elif channel.id in self.CREATEDESK_CHANNEL.id:
+            elif channel.id == self.CREATEDESK_CHANNEL.id:
                 vc_sorted_dict[vc_deskcreate_pos] = channel
         return vc_sorted_dict
 
