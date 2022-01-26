@@ -181,18 +181,17 @@ class CreateStudyDesk(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         # 入室時
-        if before.channel is None:
-            if (after.channel.id in self.MOVECHANNELS
-                    and before.channel is None):
+        if before.channel != after.channel and before.channel is None:
+            if after.channel.id in self.MOVECHANNELS:
                 # [勉強机]に移動専用のVCに参加した時
                 await self.create_studydesk(member)
-            elif before.channel != after.channel and before.channel is None:
+                return
+            else:
                 # それ以外のVCに参加した時
                 print("[DEBUG] 処理不要な入室時")
         # 退出時
-        if after.channel is None:
-            if before.channel != after.channel and after.channel is None:
-                await self.remove_studydesk_10over(member, before)
+        if before.channel != after.channel and after.channel is None:
+            await self.remove_studydesk_10over(member, before)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
