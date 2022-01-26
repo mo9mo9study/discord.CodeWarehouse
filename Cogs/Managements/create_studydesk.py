@@ -85,15 +85,15 @@ class CreateStudyDesk(commands.Cog):
 
     def check_pos(self):
         self.CATEGORY = self.GUILD.get_channel(self.CATEGORY_ID)
+        vcpos_diffarent = []
         for channel in self.CATEGORY.channels:
-            vcpos_diffarent = []
             r_d1 = re.compile(r"もくもく勉強机(\d).*")
             r_d2 = re.compile(r"もくもく勉強机(\d{2}).*")
             # 勉強机の席番が10〜
             if r_d2.match(channel.name):
                 vc_namenu = r_d2.match(channel.name)[1]
                 print(
-                    f"[DEBUG] {channel.name}/{vc_namenu}:{channel.position}")  # noqa: E501
+                    f"[DEBUG] {channel.name}/DeskNo:{vc_namenu}, DeskPos:{channel.position}")  # noqa: E501
                 vc_pos = int(vc_namenu)
                 if (vc_pos + 1) != channel.position:
                     diff_msg = f"{channel.name}/{vc_namenu}:{channel.position}"
@@ -103,9 +103,9 @@ class CreateStudyDesk(commands.Cog):
                 vc_namenu = unicodedata.normalize(
                     "NFKD", r_d1.match(channel.name)[1])
                 print(
-                    f"[DEBUG: high] {channel.name}/{vc_namenu}:{channel.position}")  # noqa: E501
+                    f"[DEBUG] {channel.name}/DeskNo:{vc_namenu}, DeskPos:{channel.position}")  # noqa: E501
                 if int(vc_namenu) != channel.position:
-                    diff_msg = f"{channel.name}:{channel.position}"
+                    diff_msg = f"{channel.name}/{vc_namenu}:{channel.position}"
                     vcpos_diffarent.append(diff_msg)
         if vcpos_diffarent:
             print(
@@ -163,6 +163,11 @@ class CreateStudyDesk(commands.Cog):
             await self.boolif_runedit()
 
     async def remove_studydesk_10over(self, member, before):
+        """
+        勉強机から退出した際、
+        退出したVC名が勉強机であり、数字が10以上(正規表現で数字2桁)の時、
+        その勉強机を削除する
+        """
         # 参加していたチャンネルが勉強机の時
         if before.channel.name.startswith("もくもく勉強机"):
             r_d2 = re.compile(r"もくもく勉強机(\d{2}).*")
@@ -175,16 +180,19 @@ class CreateStudyDesk(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        # 勉強机を作成する処理専用のVCが複数作る想定で条件式を[==]から[in]に変更
-        if (after.channel.id in self.MOVECHANNELS and before.channel is None):
-            # [勉強机]に移動専用のVCに参加した時
-            await self.create_studydesk(member)
-        elif before.channel != after.channel and before.channel is None:
-            # 退出時: 勉強机1~9から退出した時
-            print("[DEBUG] 処理不要な入室時")
-        elif before.channel != after.channel and after.channel is None:
-            # 退出時: 勉強机10以降から退出した時
-            await self.remove_studydesk_10over(member, before)
+        # 入室時
+        if before.channel is None:
+            if (after.channel.id in self.MOVECHANNELS
+                    and before.channel is None):
+                # [勉強机]に移動専用のVCに参加した時
+                await self.create_studydesk(member)
+            elif before.channel != after.channel and before.channel is None:
+                # それ以外のVCに参加した時
+                print("[DEBUG] 処理不要な入室時")
+        # 退出時
+        if after.channel is None:
+            if before.channel != after.channel and after.channel is None:
+                await self.remove_studydesk_10over(member, before)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
