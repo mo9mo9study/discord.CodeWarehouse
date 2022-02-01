@@ -11,7 +11,8 @@ class CreateStudyDesk(commands.Cog):
         self.GUILD_ID = 603582455756095488  # mo9mo9 Guild Id
         self.CATEGORY_ID = 873317086439546900  # Study Space Category Id
         self.LOG_CHANNEL_ID = 801060150433153054  # 通知用 Channel Id
-        self.CREATEDESK_CHANNEL_ID = 897995150926688286
+        self.CREATEDESK_CHANNEL_ID = 897995150926688286  # 勉強机に着席
+        self.CREATEDESK_CHANNEL2_ID = 935921618725777448  # 勉強開始
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -20,10 +21,17 @@ class CreateStudyDesk(commands.Cog):
         self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
         self.CREATEDESK_CHANNEL = self.GUILD.get_channel(
             self.CREATEDESK_CHANNEL_ID)
+        self.CREATEDESK_CHANNEL2 = self.GUILD.get_channel(
+            self.CREATEDESK_CHANNEL2_ID)
+        self.MOVECHANNELS = [self.CREATEDESK_CHANNEL.id, self.CREATEDESK_CHANNEL2.id]  # noqa: E501
 
     def vc_sort(self):
+        """
+        カテゴリーのチャンネルを全て取得し、チャンネルの並び順を
+        想定通りになるようpos番号を振り直して辞書として値を戻す
+        """
         vc_sorted_dict = {}
-        vc_deskcreate_pos = 10
+        vc_deskcreate_pos = 1
         self.CATEGORY = self.GUILD.get_channel(self.CATEGORY_ID)
         for channel in self.CATEGORY.channels:
             if channel.name.startswith("もくもく勉強机"):
@@ -37,9 +45,9 @@ class CreateStudyDesk(commands.Cog):
                 elif re.compile(r_d1).match(channel.name):
                     vc_namenu = unicodedata.normalize(
                         "NFKD", r_d1.match(channel.name)[1])
-                    vc_sorted_dict[int(vc_namenu)] = channel
+                    vc_sorted_dict[int(vc_namenu) + 1] = channel
             # 勉強机を作成するチャンネル
-            elif channel.name.endswith("勉強机を作成"):
+            elif channel.id == self.CREATEDESK_CHANNEL.id:
                 vc_sorted_dict[vc_deskcreate_pos] = channel
         return vc_sorted_dict
 
@@ -76,28 +84,22 @@ class CreateStudyDesk(commands.Cog):
                     f"[INFO] {channel.name}を位置({before_pos} -> {channel.position} )に変更")  # noqa: E501
 
     def check_pos(self):
+        """
+        勉強机の位置に修正が必要かを確認し、
+        後続処理の実行可否の判定条件になるbool値を返す
+        """
         self.CATEGORY = self.GUILD.get_channel(self.CATEGORY_ID)
+        vcpos_diffarent = []
         for channel in self.CATEGORY.channels:
-            vcpos_diffarent = []
-            r_d1 = re.compile(r"もくもく勉強机(\d).*")
-            r_d2 = re.compile(r"もくもく勉強机(\d{2}).*")
-            # 勉強机の席番が10〜
-            if r_d2.match(channel.name):
-                vc_namenu = r_d2.match(channel.name)[1]
-                print(
-                    f"[DEBUG: high] {channel.name}/{vc_namenu}:{channel.position}")  # noqa: E501
-                vc_pos = int(vc_namenu)
-                if (vc_pos + 1) != channel.position:
-                    diff_msg = f"{channel.name}/{vc_namenu}:{channel.position}"
-                    vcpos_diffarent.append(diff_msg)
-            # 勉強机の席番が1〜9
-            elif re.compile(r_d1).match(channel.name):
-                vc_namenu = unicodedata.normalize(
-                    "NFKD", r_d1.match(channel.name)[1])
-                print(
-                    f"[DEBUG: high] {channel.name}/{vc_namenu}:{channel.position}")  # noqa: E501
-                if int(vc_namenu) != channel.position:
-                    diff_msg = f"{channel.name}:{channel.position}"
+            # 「もくもく勉強机99」まで対応
+            r_d = re.compile(r"もくもく勉強机(\d{,2}).*")
+            if r_d.match(channel.name):
+                vc_deskno = unicodedata.normalize(
+                    "NFKD", r_d.match(channel.name)[1])
+                print(f"[DEBUG] {channel.name}/DeskNo:{vc_deskno}, DeskPos:{channel.position}")  # noqa: E501
+                # 勉強机番号+1と勉強机のPostionが一致しない場合のみ実行
+                if (int(vc_deskno) + 1) != channel.position:
+                    diff_msg = f"{channel.name}/n-{vc_deskno}:p-{channel.position}"  # noqa: E501
                     vcpos_diffarent.append(diff_msg)
         if vcpos_diffarent:
             print(
@@ -128,22 +130,24 @@ class CreateStudyDesk(commands.Cog):
                 empty_studydesk.append(channel)
         print(f"[DEBUG] member: {v_count} / channel: {m_count}")
         # 勉強机の数と勉強机に参加している人数が同一の場合
-        # empty_studydesk.clear()  # 擬似的な満席
+        # empty_studydesk.clear()  # 擬似的に満席状態として処理させるテスト用コード
         if not empty_studydesk:
             # 10以降の連番に欠番が存在するかどうか
-            create_channelposition = self.desk_missing_number()
-            if not create_channelposition:  # 10over, False
+            create_deskno = self.desk_missing_number()
+            if not create_deskno:  # 10over, False
                 # 連番に欠番が存在しない時
                 vc_sorted_dict = self.vc_sort()
-                lastvc_pos = vc_sorted_dict[len(
-                    self.CATEGORY.channels)].position
-                create_channelposition = lastvc_pos
+                studydesk_len = len(self.CATEGORY.channels)  # チャンネル総数
+                # ソートした辞書からpos取得
+                lastvc_pos = vc_sorted_dict[studydesk_len - 1].position
+                create_deskno = studydesk_len  # 作成する勉強机No
+            create_deskname = f"もくもく勉強机{str(create_deskno)}"
             new_studydesk = await self.CATEGORY.create_voice_channel(
-                name=f"もくもく勉強机{str(create_channelposition)}",
+                name=create_deskname,
                 user_limit=1,
-                position=create_channelposition+1)
+                position=lastvc_pos+1)
             await member.move_to(new_studydesk)
-            log_msg = f"[INFO] もくもく勉強机{create_channelposition} を作成(Before_studydeskCount: {v_count})"  # noqa: E501
+            log_msg = f"[INFO] {create_deskname} を用意(出席者:{member.name})"  # noqa: E501
             print(log_msg)
             await self.LOG_CHANNEL.send(log_msg)
             await self.boolif_runedit()
@@ -152,25 +156,36 @@ class CreateStudyDesk(commands.Cog):
             await member.move_to(empty_studydesk[0])
             await self.boolif_runedit()
 
-    async def remove_studydesk_10over(self, before):
+    async def remove_studydesk_10over(self, member, before):
+        """
+        勉強机から退出した際、
+        退出したVC名が勉強机であり、数字が10以上(正規表現で数字2桁)の時、
+        その勉強机を削除する
+        """
         # 参加していたチャンネルが勉強机の時
         if before.channel.name.startswith("もくもく勉強机"):
             r_d2 = re.compile(r"もくもく勉強机(\d{2}).*")
             # 机の席番が10以上のチャンネルから退出した時
             if r_d2.match(before.channel.name):
                 await before.channel.delete()
-                print(f"[INFO] {before.channel.name} を削除しました")
+                log_msg = f"[INFO] {before.channel.name} を片付け(退席者:{member.name})"  # noqa: E501
+                print(log_msg)
+                await self.LOG_CHANNEL.send(log_msg)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if after.channel == self.CREATEDESK_CHANNEL and before.channel is None:
-            # [勉強机を作成]するチャンネルに参加した時
-            await self.create_studydesk(member)
-        elif before.channel != after.channel and before.channel is None:
-            print("[DEBUG] 処理不要な入室時")
-        elif before.channel != after.channel and after.channel is None:
-            # 退出時: 勉強机10以降から退出した時
-            await self.remove_studydesk_10over(before)
+        # 入室時
+        if before.channel != after.channel and before.channel is None:
+            if after.channel.id in self.MOVECHANNELS:
+                # [勉強机]に移動専用のVCに参加した時
+                await self.create_studydesk(member)
+                return
+            else:
+                # それ以外のVCに参加した時
+                print("[DEBUG] 処理不要な入室時")
+        # 退出時
+        if before.channel != after.channel and after.channel is None:
+            await self.remove_studydesk_10over(member, before)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
