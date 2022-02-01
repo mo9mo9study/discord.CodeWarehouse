@@ -29,6 +29,7 @@ class Times(commands.Cog):
         self.OTHER_CHANNEL_ID6 = 872130381443375124  # その他の分報カテゴリーid(6つ目)
         self.TIMES_CREATE_ID = 872257840528646144  # timesを作成チャンネルid
         self.VIEW_TIMES_ID = 792369191843135488  # チャンネル[自分のtimesへ移動]
+        self.LOG_CHANNEL_ID = 801060150433153054  # 通知用 Channel Id
         # Tutorialメッセージに追加するリアクション一覧
         self.EMOJIS = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
         self.second = 5
@@ -55,6 +56,7 @@ class Times(commands.Cog):
         self.TIMES_CREATE = self.GUILD.get_channel(self.TIMES_CREATE_ID)
         self.VIEW_TIMES = self.GUILD.get_channel(self.VIEW_TIMES_ID)
         self.ROLE = self.GUILD.get_role(self.ROLE_ID)
+        self.LOG_CHANNEL = self.GUILD.get_channel(self.LOG_CHANNEL_ID)
         # ユーザーが自己紹介してなくても任意でtimesを作成できる処理を追加
         await self.TIMES_CREATE.purge()
         embed = discord.Embed(title="あなたのtimesを作成します",
@@ -248,6 +250,8 @@ class Times(commands.Cog):
         for channel in self.GUILD.text_channels:
             if channel.name[0:6] == "times_":
                 await self.channel_editpermission(channel, False)
+        log_msg = "[INFO] 全timesにロールdisable_times(read_messages=False)の権限を付与"
+        await self.LOG_CHANNEL.send(log_msg)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
