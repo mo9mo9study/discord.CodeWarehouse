@@ -129,6 +129,7 @@ class Times(commands.Cog):
     async def channelCreateSend(self, member):
         channel = await self.ACTIVE_CATEGORY.create_text_channel(
             name=f"times_{member.name}")
+        await self.channel_editpermission(channel, False)
         await channel.edit(topic=member.id)
 
         await channel.send(f"""
