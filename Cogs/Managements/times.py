@@ -231,6 +231,30 @@ class Times(commands.Cog):
             else:
                 await channel.edit(category=self.OTHER_CHANNEL6)
 
+    async def channel_editpermission(self, channel, per_bool):
+        disabletimes_role = discord.utils.get(
+            self.GUILD.roles, name="disable_times")
+        overwrite = discord.PermissionOverwrite()
+        overwrite.read_messages = per_bool
+        await channel.set_permissions(disabletimes_role, overwrite=overwrite)
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def times_addrole_disabletimes(self, ctx):
+        """
+        全てのtimesチャンネルにdisable_timesの権限を付与する
+        disable_timesはread_messages=Falseの権限を有する
+        """
+        for channel in self.GUILD.text_channels:
+            if channel.name[0:6] == "times_":
+                await self.channel_editpermission(channel, False)
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def times_reset(self, ctx):
+        for channel in self.getActiveChannels():
+            await self.times_classification(channel)
+
     # ---------------定期処理---------------
     # 午前2:00に実行されます
 
@@ -241,12 +265,6 @@ class Times(commands.Cog):
         if now == "02:00":
             for channel in self.getActiveChannels():
                 await self.times_classification(channel)
-
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def times_reset(self, ctx):
-        for channel in self.getActiveChannels():
-            await self.times_classification(channel)
 
 
 def setup(bot):
